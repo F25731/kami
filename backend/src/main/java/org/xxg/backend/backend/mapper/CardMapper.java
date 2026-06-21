@@ -218,7 +218,9 @@ try {
     public void update(Card card) {
         String sql = "UPDATE cards SET status = ?, use_time = ?, expire_time = ?, remaining_count = ?, " +
                      "device_id = ?, ip_address = ?, machine_code = ?, duration = ?, total_count = ?, allow_reverify = ?, " +
-                     "stack_time_if_same_machine = ?, allow_self_unbind = ?, merged_into_card_id = ? WHERE id = ?";
+                     "stack_time_if_same_machine = ?, allow_self_unbind = ?, merged_into_card_id = ?, " +
+                     "package_id = ?, order_no = ?, source = ?, bind_device_id = ?, bind_time = ?, bind_type = ?, " +
+                     "redeemed_user_id = ?, redeemed_at = ?, activated_at = ? WHERE id = ?";
         jdbcTemplate.update(sql,
             card.getStatus(),
             card.getUseTime() != null ? Timestamp.valueOf(card.getUseTime()) : null,
@@ -233,6 +235,15 @@ try {
             Boolean.TRUE.equals(card.getStackTimeIfSameMachine()) ? 1 : 0,
             Boolean.TRUE.equals(card.getAllowSelfUnbind()) ? 1 : 0,
             card.getMergedIntoCardId(),
+            card.getPackageId(),
+            card.getOrderNo(),
+            card.getSource(),
+            card.getBindDeviceId(),
+            card.getBindTime() != null ? Timestamp.valueOf(card.getBindTime()) : null,
+            card.getBindType(),
+            card.getRedeemedUserId(),
+            card.getRedeemedAt() != null ? Timestamp.valueOf(card.getRedeemedAt()) : null,
+            card.getActivatedAt() != null ? Timestamp.valueOf(card.getActivatedAt()) : null,
             card.getId()
         );
     }
@@ -450,6 +461,28 @@ try {
                 }
             } catch (SQLException ignored) {
             }
+            // ─── multi-project new fields ───────────────────────────────────────
+            try {
+                long pkgId = rs.getLong("package_id");
+                if (!rs.wasNull()) card.setPackageId(pkgId);
+            } catch (SQLException ignored) {}
+            try { card.setOrderNo(rs.getString("order_no")); } catch (SQLException ignored) {}
+            try { card.setSource(rs.getString("source")); } catch (SQLException ignored) {}
+            try { card.setBindDeviceId(rs.getString("bind_device_id")); } catch (SQLException ignored) {}
+            try {
+                if (rs.getTimestamp("bind_time") != null)
+                    card.setBindTime(rs.getTimestamp("bind_time").toLocalDateTime());
+            } catch (SQLException ignored) {}
+            try { card.setBindType(rs.getString("bind_type")); } catch (SQLException ignored) {}
+            try { card.setRedeemedUserId(rs.getString("redeemed_user_id")); } catch (SQLException ignored) {}
+            try {
+                if (rs.getTimestamp("redeemed_at") != null)
+                    card.setRedeemedAt(rs.getTimestamp("redeemed_at").toLocalDateTime());
+            } catch (SQLException ignored) {}
+            try {
+                if (rs.getTimestamp("activated_at") != null)
+                    card.setActivatedAt(rs.getTimestamp("activated_at").toLocalDateTime());
+            } catch (SQLException ignored) {}
             return card;
         }
     }

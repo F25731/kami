@@ -5,10 +5,15 @@ import org.springframework.stereotype.Service;
 import org.xxg.backend.backend.mapper.ApiKeyMapper;
 import org.xxg.backend.backend.mapper.ApiKeyMachineSpecRedemptionMapper;
 import org.xxg.backend.backend.mapper.CardMapper;
+import org.xxg.backend.backend.mapper.CardPackageMapper;
+import org.xxg.backend.backend.mapper.CardIssueOrderMapper;
+import org.xxg.backend.backend.mapper.ConsumeLogMapper;
+import org.xxg.backend.backend.mapper.DeviceBindLogMapper;
 import org.xxg.backend.backend.mapper.OrderMapper;
 import org.xxg.backend.backend.mapper.UserMapper;
 import org.xxg.backend.backend.entity.ApiKey;
 import org.xxg.backend.backend.entity.Card;
+import org.xxg.backend.backend.entity.CardIssueOrder;
 import org.xxg.backend.backend.entity.Order;
 import org.xxg.backend.backend.entity.User;
 import org.springframework.transaction.annotation.Transactional;
@@ -1264,5 +1269,266 @@ public class CardService {
         if (apiKeyId != null) {
             apiKeyMachineSpecRedemptionMapper.deleteByApiKeyAndMachine(apiKeyId, mc);
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  OpenAPI bridge methods (multi-project)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    @Autowired(required = false)
+    private CardPackageMapper cardPackageMapper;
+    @Autowired(required = false)
+    private CardIssueOrderMapper issueOrderMapper;
+    @Autowired(required = false)
+    private UserEntitlementService entitlementService;
+    @Autowired(required = false)
+    private ConsumeLogMapper consumeLogMapper;
+    @Autowired(required = false)
+    private DeviceBindLogMapper deviceBindLogMapper;
+    @Autowired(required = false)
+    private ProjectWebhookService projectWebhookService;
+
+    public Map<String, Object> generateViaApi(Long projectId, String orderNo, int quantity,
+                                               String cardType, Integer countValue, Integer durationDays,
+                                               Boolean isPermanent, Long packageId, String remark) {
+        Map<String, Object> result = new HashMap<>();
+        if (orderNo != null && issueOrderMapper != null) {
+            var existing = issueOrderMapper.findByProjectIdAndOrderNo(projectId, orderNo);
+            if (existing != null) {
+                result.put("success", false);
+                result.put("code", "DUPLICATE_ORDER");
+                result.put("message", "订单号已存在");
+                return result;
+            }
+        }
+        List<Card> cards = createCardsForProject(projectId, quantity, cardType,
+            durationDays != null ? durationDays : 0,
+            countValue != null ? countValue : 0,
+            "api", "advanced", 1,
+            "api", null, "OpenAPI", null,
+            false, false);
+
+        for (Card card : cards) {
+            card.setPackageId(packageId);
+            card.setOrderNo(orderNo);
+            card.setSource("api");
+            cardMapper.update(card);
+        }
+
+        if (orderNo != null && issueOrderMapper != null) {
+            CardIssueOrder issueOrder = new CardIssueOrder();
+            issueOrder.setProjectId(projectId);
+            issueOrder.setOrderNo(orderNo);
+            issueOrder.setPackageId(packageId);
+            issueOrder.setQuantity(quantity);
+            issueOrder.setCardType(cardType);
+            issueOrder.setCountValue(countValue != null ? countValue : 0);
+            issueOrder.setDurationDays(durationDays != null ? durationDays : 0);
+            issueOrder.setIsPermanent(Boolean.TRUE.equals(isPermanent));
+            issueOrder.setRemark(remark);
+            issueOrder.setStatus("completed");
+            issueOrderMapper.insert(issueOrder);
+        }
+
+        // WebHook: card.generated
+        if (projectWebhookService != null && !cards.isEmpty()) {
+            Map<String, Object> webhookData = new HashMap<>();
+            webhookData.put("order_no", orderNo);
+            webhookData.put("quantity", quantity);
+            webhookData.put("card_type", cardType);
+            webhookData.put("card_keys", cards.stream().map(Card::getCardKey).toArray());
+            projectWebhookService.trigger(projectId, "card.generated", webhookData);
+        }
+
+        result.put("success", true);
+        result.put("cards", cards);
+        return result;
+    }
+
+    public Map<String, Object> verifyForOpenApi(Long projectId, String cardKey) {
+        Map<String, Object> result = new HashMap<>();
+        Card card = cardMapper.findByProjectIdAndCardKey(projectId, cardKey);
+        if (card == null) {
+            result.put("success", false);
+            result.put("code", "CARD_NOT_FOUND");
+            result.put("message", "卡密不存在");
+            return result;
+        }
+        result.put("success", true);
+        result.put("card_type", card.getCardType());
+        result.put("status", card.getStatus());
+        result.put("remaining_count", card.getRemainingCount());
+        result.put("expire_time", card.getExpireTime());
+        return result;
+    }
+
+    public Map<String, Object> getStatusForOpenApi(Long projectId, String cardKey) {
+        return verifyForOpenApi(projectId, cardKey);
+    }
+
+    public Map<String, Object> consumeForOpenApi(Long projectId, String cardKey, String bizId,
+                                                  String deviceId, int amount, String clientIp) {
+        Map<String, Object> result = new HashMap<>();
+        Card card = cardMapper.findByProjectIdAndCardKey(projectId, cardKey);
+        if (card == null) {
+            result.put("success", false);
+            result.put("code", "CARD_NOT_FOUND");
+            return result;
+        }
+        if (card.getStatus() != 1) {
+            result.put("success", false);
+            result.put("code", "CARD_NOT_ACTIVE");
+            return result;
+        }
+        if (bizId != null && consumeLogMapper != null) {
+            var log = consumeLogMapper.findCardConsumeLog(projectId, card.getId(), bizId);
+            if (log != null) {
+                result.put("success", true);
+                result.put("idempotent", true);
+                result.put("remaining_count", card.getRemainingCount());
+                return result;
+            }
+        }
+        if (card.getRemainingCount() < amount) {
+            result.put("success", false);
+            result.put("code", "INSUFFICIENT");
+            return result;
+        }
+        int beforeCount = card.getRemainingCount();
+        card.setRemainingCount(card.getRemainingCount() - amount);
+        cardMapper.update(card);
+        if (consumeLogMapper != null) {
+            consumeLogMapper.insertCardConsumeLog(projectId, card.getId(), bizId, deviceId, null, "consume", clientIp);
+        }
+
+        // WebHook: card.consumed
+        if (projectWebhookService != null) {
+            Map<String, Object> webhookData = new HashMap<>();
+            webhookData.put("card_key", cardKey);
+            webhookData.put("card_id", card.getId());
+            webhookData.put("biz_id", bizId);
+            webhookData.put("amount", amount);
+            webhookData.put("before_count", beforeCount);
+            webhookData.put("after_count", card.getRemainingCount());
+            webhookData.put("device_id", deviceId);
+            webhookData.put("client_ip", clientIp);
+            projectWebhookService.trigger(projectId, "card.consumed", webhookData);
+        }
+
+        result.put("success", true);
+        result.put("remaining_count", card.getRemainingCount());
+        return result;
+    }
+
+    public Map<String, Object> redeemForOpenApi(Long projectId, String cardKey, String userId, String clientIp) {
+        Map<String, Object> result = new HashMap<>();
+        Card card = cardMapper.findByProjectIdAndCardKey(projectId, cardKey);
+        if (card == null) {
+            result.put("success", false);
+            result.put("code", "CARD_NOT_FOUND");
+            return result;
+        }
+        if (card.getStatus() != 0) {
+            result.put("success", false);
+            result.put("code", "CARD_ALREADY_USED");
+            return result;
+        }
+        if (cardPackageMapper == null || entitlementService == null) {
+            result.put("success", false);
+            result.put("message", "权益系统未启用");
+            return result;
+        }
+        var pkg = cardPackageMapper.findById(card.getPackageId());
+        if (pkg == null) {
+            result.put("success", false);
+            result.put("message", "卡密套餐不存在");
+            return result;
+        }
+        card.setStatus(1);
+        card.setUseTime(LocalDateTime.now());
+        card.setRedeemedUserId(userId);
+        card.setRedeemedAt(LocalDateTime.now());
+        cardMapper.update(card);
+        var ent = entitlementService.redeemFromPackage(projectId, userId, pkg, card.getId(), card.getOrderNo());
+
+        // WebHook: card.redeemed
+        if (projectWebhookService != null) {
+            Map<String, Object> webhookData = new HashMap<>();
+            webhookData.put("card_key", cardKey);
+            webhookData.put("card_id", card.getId());
+            webhookData.put("user_id", userId);
+            webhookData.put("entitlement_id", ent.getId());
+            webhookData.put("entitlement_type", ent.getEntitlementType());
+            webhookData.put("total_count", ent.getTotalCount());
+            webhookData.put("expire_time", ent.getExpireTime());
+            webhookData.put("client_ip", clientIp);
+            projectWebhookService.trigger(projectId, "card.redeemed", webhookData);
+        }
+
+        result.put("success", true);
+        result.put("entitlement_id", ent.getId());
+        result.put("entitlement_type", ent.getEntitlementType());
+        result.put("total_count", ent.getTotalCount());
+        result.put("remaining_count", ent.getRemainingCount());
+        return result;
+    }
+
+    public Map<String, Object> unbindDeviceForOpenApi(Long projectId, String cardKey, String reason, String clientIp) {
+        Map<String, Object> result = new HashMap<>();
+        Card card = cardMapper.findByProjectIdAndCardKey(projectId, cardKey);
+        if (card == null) {
+            result.put("success", false);
+            result.put("code", "CARD_NOT_FOUND");
+            return result;
+        }
+        if (card.getBindDeviceId() == null) {
+            result.put("success", false);
+            result.put("code", "NOT_BOUND");
+            result.put("message", "卡密未绑定设备");
+            return result;
+        }
+        String oldDevice = card.getBindDeviceId();
+        card.setBindDeviceId(null);
+        card.setBindTime(null);
+        cardMapper.update(card);
+        if (deviceBindLogMapper != null) {
+            var log = new org.xxg.backend.backend.entity.DeviceBindLog();
+            log.setProjectId(projectId);
+            log.setCardId(card.getId());
+            log.setDeviceId(oldDevice);
+            log.setAction("unbind");
+            log.setReason(reason);
+            log.setOperatorType("api");
+            deviceBindLogMapper.insert(log);
+        }
+        result.put("success", true);
+        return result;
+    }
+
+    public Map<String, Object> refundConsumeForOpenApi(Long projectId, String cardKey, String bizId) {
+        Map<String, Object> result = new HashMap<>();
+        Card card = cardMapper.findByProjectIdAndCardKey(projectId, cardKey);
+        if (card == null) {
+            result.put("success", false);
+            result.put("code", "CARD_NOT_FOUND");
+            return result;
+        }
+        if (consumeLogMapper == null) {
+            result.put("success", false);
+            result.put("message", "消费日志系统未启用");
+            return result;
+        }
+        var log = consumeLogMapper.findCardConsumeLog(projectId, card.getId(), bizId);
+        if (log == null) {
+            result.put("success", false);
+            result.put("code", "LOG_NOT_FOUND");
+            return result;
+        }
+        card.setRemainingCount(card.getRemainingCount() + 1);
+        cardMapper.update(card);
+        consumeLogMapper.markCardConsumeRefunded(((Number) log.get("id")).longValue());
+        result.put("success", true);
+        result.put("remaining_count", card.getRemainingCount());
+        return result;
     }
 }

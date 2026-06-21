@@ -81,6 +81,34 @@ public class Card {
     @JsonProperty("merged_into_card_id")
     private Long mergedIntoCardId;
 
+    // ─── multi-project new fields ───────────────────────────────────────────
+
+    @JsonProperty("package_id")
+    private Long packageId;
+
+    @JsonProperty("order_no")
+    private String orderNo;
+
+    private String source;  // api / admin / import
+
+    @JsonProperty("bind_device_id")
+    private String bindDeviceId;
+
+    @JsonProperty("bind_time")
+    private LocalDateTime bindTime;
+
+    @JsonProperty("bind_type")
+    private String bindType;  // machine_code / android_id / custom
+
+    @JsonProperty("redeemed_user_id")
+    private String redeemedUserId;
+
+    @JsonProperty("redeemed_at")
+    private LocalDateTime redeemedAt;
+
+    @JsonProperty("activated_at")
+    private LocalDateTime activatedAt;
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -156,5 +184,32 @@ public class Card {
 
     public Long getMergedIntoCardId() { return mergedIntoCardId; }
     public void setMergedIntoCardId(Long mergedIntoCardId) { this.mergedIntoCardId = mergedIntoCardId; }
+
+    public Long getPackageId() { return packageId; }
+    public void setPackageId(Long packageId) { this.packageId = packageId; }
+
+    public String getOrderNo() { return orderNo; }
+    public void setOrderNo(String orderNo) { this.orderNo = orderNo; }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
+
+    public String getBindDeviceId() { return bindDeviceId; }
+    public void setBindDeviceId(String bindDeviceId) { this.bindDeviceId = bindDeviceId; }
+
+    public LocalDateTime getBindTime() { return bindTime; }
+    public void setBindTime(LocalDateTime bindTime) { this.bindTime = bindTime; }
+
+    public String getBindType() { return bindType; }
+    public void setBindType(String bindType) { this.bindType = bindType; }
+
+    public String getRedeemedUserId() { return redeemedUserId; }
+    public void setRedeemedUserId(String redeemedUserId) { this.redeemedUserId = redeemedUserId; }
+
+    public LocalDateTime getRedeemedAt() { return redeemedAt; }
+    public void setRedeemedAt(LocalDateTime redeemedAt) { this.redeemedAt = redeemedAt; }
+
+    public LocalDateTime getActivatedAt() { return activatedAt; }
+    public void setActivatedAt(LocalDateTime activatedAt) { this.activatedAt = activatedAt; }
 }
 

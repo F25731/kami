@@ -1,5 +1,7 @@
 package org.xxg.backend.backend.service;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.xxg.backend.backend.entity.Project;
@@ -23,10 +25,17 @@ public class ProjectService {
         return projectMapper.findAll();
     }
 
+    @Cacheable(value = "projects", key = "#id", unless = "#result == null")
     public Project getProject(Long id) {
         return projectMapper.findById(id);
     }
 
+    @Cacheable(value = "projects", key = "#id", unless = "#result == null")
+    public Project getById(Long id) {
+        return projectMapper.findById(id);
+    }
+
+    @Cacheable(value = "projects", key = "'token:' + #token", unless = "#result == null")
     public Project getByToken(String token) {
         return projectMapper.findByToken(token);
     }
@@ -48,6 +57,7 @@ public class ProjectService {
     }
 
     @Transactional
+    @CacheEvict(value = "projects", allEntries = true)
     public void updateProject(Long id, Project project) {
         Project existing = projectMapper.findById(id);
         if (existing == null) {
