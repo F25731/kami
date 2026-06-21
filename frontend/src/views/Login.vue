@@ -58,23 +58,76 @@ async function login() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: transparent;
 }
 
 .login-card {
-  width: 380px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
+  width: 420px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.login-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
 }
 
 .login-title {
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 700;
   text-align: center;
+  color: #000000 !important;
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.3);
 }
 
 .login-button {
   width: 100%;
+  height: 44px;
+  font-size: 16px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  color: #000000 !important;
+  transition: all 0.3s ease;
+}
+
+.login-button:hover {
+  background: rgba(255, 255, 255, 0.35) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+:deep(.el-form-item) {
+  margin-bottom: 24px;
+}
+
+:deep(.el-input__inner) {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #000000 !important;
+  backdrop-filter: blur(10px);
+  height: 44px;
+  font-size: 15px;
+}
+
+:deep(.el-input__inner::placeholder) {
+  color: #333333 !important;
+}
+
+:deep(.el-card__header) {
+  background: transparent !important;
+  border: none !important;
+  padding: 20px 20px 10px;
+}
+
+:deep(.el-card__body) {
+  padding: 10px 20px 30px;
 }
 </style>

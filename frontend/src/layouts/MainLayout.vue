@@ -50,7 +50,7 @@
                 text
                 type="danger"
                 @click.stop="deleteProject(project)"
-              >??</el-button>
+              >删除</el-button>
             </div>
 
             <el-button class="create-project-btn glass-btn" @click="showCreateProjectDialog = true">
@@ -200,16 +200,16 @@ function selectProject(project) {
 
 async function deleteProject(project) {
   try {
-    await ElMessageBox.confirm('??????????????????????' + project.projectName + '??', '??????', { type: 'warning' })
+    await ElMessageBox.confirm('确定要删除项目"' + project.projectName + '"吗？删除后无法恢复。', '删除确认', { type: 'warning' })
     const result = await projectStore.deleteProject(project.id)
     if (result.success) {
-      ElMessage.success('?????')
+      ElMessage.success('项目已删除')
     } else {
-      ElMessage.error(result.message || '????')
+      ElMessage.error(result.message || '删除失败')
     }
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error(error.response?.data?.message || error.message || '????')
+      ElMessage.error(error.response?.data?.message || error.message || '删除失败')
     }
   }
 }
@@ -261,28 +261,32 @@ onMounted(() => {
 .app-layout {
   display: flex;
   height: 100vh;
-  background: linear-gradient(135deg, #e0f2fe 0%, #eef2ff 50%, #f8fafc 100%);
+  background: transparent;
   overflow: hidden;
 }
 
 .glass-panel,
 .glass-card,
 .glass-section {
-  background: rgba(255, 255, 255, 0.94) !important;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(15, 23, 42, 0.12) !important;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1) !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
 }
 
 .glass-btn {
-  background: #ffffff !important;
-  border: 1px solid #d1d5db !important;
-  color: #111827 !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #000000 !important;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
 }
 
 .glass-btn:hover {
-  background: #f3f4f6 !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar {
@@ -326,7 +330,7 @@ onMounted(() => {
   gap: 12px;
   font-size: 24px;
   font-weight: bold;
-  color: #111827;
+  color: #000000;
 }
 
 .logo i {
@@ -345,7 +349,7 @@ onMounted(() => {
 
 .section-header {
   cursor: pointer;
-  color: #111827;
+  color: #000000;
   font-size: 14px;
   font-weight: 600;
 }
@@ -374,13 +378,15 @@ onMounted(() => {
 
 .project-item.active,
 .nav-item.active {
-  background: #2563eb !important;
-  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+  color: #000000 !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
 }
 
 .project-item.active *,
 .nav-item.active * {
-  color: #ffffff !important;
+  color: #000000 !important;
 }
 
 .project-delete-btn {
@@ -399,10 +405,12 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #2563eb;
-  color: #ffffff;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+  color: #000000;
   font-weight: 700;
   flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
 }
 
 .project-icon.small {
@@ -415,13 +423,13 @@ onMounted(() => {
 .username,
 .breadcrumb,
 .nav-item {
-  color: #111827 !important;
+  color: #000000 !important;
 }
 
 .project-token,
 .project-code,
 .user-role {
-  color: #4b5563 !important;
+  color: #1a1a1a !important;
   font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -501,17 +509,18 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #111827;
+  color: #000000;
 }
 
 .empty-state i {
-  color: #2563eb;
+  color: #000000;
   font-size: 64px;
   margin-bottom: 16px;
+  opacity: 0.7;
 }
 
 .empty-state p {
-  color: #4b5563;
+  color: #1a1a1a;
   font-size: 18px;
   margin-bottom: 24px;
 }

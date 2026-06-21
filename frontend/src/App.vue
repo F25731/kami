@@ -24,31 +24,42 @@ body {
     'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #43e97b 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
 }
 
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
 .el-button {
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .el-input__inner, .el-textarea__inner {
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .el-dialog {
-  border-radius: 16px;
+  border-radius: 20px;
+  overflow: hidden;
 }
 
 .el-message-box {
-  border-radius: 16px;
+  border-radius: 20px;
+  overflow: hidden;
 }
-
 
 .glass-dialog .el-dialog {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
-
 
 ::-webkit-scrollbar {
   width: 8px;
@@ -56,30 +67,39 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.3);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.5);
 }
 
-
 .app-layout {
-  background: linear-gradient(135deg, #e0f2fe 0%, #eef2ff 50%, #f8fafc 100%) !important;
+  background: transparent !important;
 }
 
 .glass-panel,
 .glass-card,
 .glass-section {
-  background: rgba(255, 255, 255, 0.94) !important;
-  border: 1px solid rgba(15, 23, 42, 0.12) !important;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1) !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.glass-panel:hover,
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15) !important;
 }
 
 .page-header h1,
@@ -101,52 +121,300 @@ body {
 .logs-page,
 .packages-page,
 .entitlements-page,
-.api-docs-page {
-  color: #111827 !important;
+.api-docs-page,
+.glass-panel *,
+.glass-card *,
+.glass-section * {
+  color: #000000 !important;
 }
 
 .page-header p,
 .form-tip,
-.project-token,
-.project-code,
 .stat-trend,
 .metric-label,
 .endpoint-desc,
 .empty-hint {
-  color: #4b5563 !important;
+  color: #1a1a1a !important;
+}
+
+.project-token,
+.project-code {
+  color: #2a2a2a !important;
 }
 
 .glass-btn {
-  background: #ffffff !important;
-  border-color: #d1d5db !important;
-  color: #111827 !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #000000 !important;
+  transition: all 0.3s ease;
 }
 
 .glass-btn:hover {
-  background: #f3f4f6 !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 .nav-item.active,
 .nav-item.router-link-active {
-  background: #2563eb !important;
-  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  color: #000000 !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
 }
 
 .nav-item.active *,
 .nav-item.router-link-active * {
-  color: #ffffff !important;
+  color: #000000 !important;
 }
 
 .el-table,
 .el-table th,
 .el-table tr,
 .el-table td {
-  color: #111827 !important;
+  color: #000000 !important;
+  background: transparent !important;
+}
+
+.el-table th {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.el-table tr:hover > td {
+  background: rgba(255, 255, 255, 0.15) !important;
 }
 
 code,
 pre {
-  color: #111827 !important;
-  background: #f3f4f6 !important;
+  color: #000000 !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-radius: 8px;
+  padding: 2px 6px;
+}
+
+.el-input__inner,
+.el-textarea__inner,
+.el-select .el-input__inner {
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #000000 !important;
+}
+
+.el-input__inner::placeholder,
+.el-textarea__inner::placeholder {
+  color: #333333 !important;
+}
+
+/* 页面容器样式 */
+.dashboard,
+.settings-page,
+.cards-page,
+.api-keys-page,
+.api-docs-page,
+.orders-page,
+.packages-page,
+.logs-page,
+.entitlements-page {
+  padding: 0;
+}
+
+/* 统计卡片 */
+.stat-card,
+.chart-card,
+.usage-card,
+.recent-orders,
+.quick-actions-card {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover,
+.chart-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* 文字颜色 */
+.stat-label,
+.stat-value,
+.stat-change,
+.chart-header h3,
+.usage-label,
+.usage-value,
+.latency-metrics span,
+.view-all-link {
+  color: #000000 !important;
+}
+
+/* 页面标题 */
+.page-header {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.page-header h2,
+.page-header h3 {
+  color: #000000 !important;
+  margin: 0 0 8px 0;
+}
+
+/* 设置相关 */
+.settings-section {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.settings-section h3 {
+  color: #000000 !important;
+  margin-bottom: 20px;
+}
+
+.form-tip {
+  color: #1a1a1a !important;
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.token-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.token-field code {
+  background: rgba(255, 255, 255, 0.25) !important;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #000000 !important;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* 表格样式优化 */
+.el-table {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.el-table::before {
+  display: none;
+}
+
+.el-table th.el-table__cell {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #000000 !important;
+  font-weight: 600;
+  border: none !important;
+}
+
+.el-table td.el-table__cell {
+  border: none !important;
+  color: #000000 !important;
+}
+
+.el-table--enable-row-hover .el-table__body tr:hover > td {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* 标签样式 */
+.el-tag {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #000000 !important;
+  backdrop-filter: blur(10px);
+}
+
+/* 按钮样式 */
+.el-button--primary {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  color: #000000 !important;
+  backdrop-filter: blur(10px);
+}
+
+.el-button--primary:hover {
+  background: rgba(255, 255, 255, 0.35) !important;
+  transform: translateY(-2px);
+}
+
+/* 选择器和下拉框 */
+.el-select-dropdown {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.el-select-dropdown__item {
+  color: #000000 !important;
+}
+
+.el-select-dropdown__item:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Radio 和 Checkbox */
+.el-radio__label,
+.el-checkbox__label {
+  color: #000000 !important;
+}
+
+/* 标签页 */
+.el-tabs__item {
+  color: #000000 !important;
+}
+
+.el-tabs__item.is-active {
+  color: #000000 !important;
+  font-weight: 600;
+}
+
+/* 面包屑 */
+.el-breadcrumb__inner,
+.el-breadcrumb__inner a {
+  color: #000000 !important;
+}
+
+/* 空状态 */
+.el-empty__description p {
+  color: #000000 !important;
+}
+
+/* 对话框 */
+.el-dialog__header,
+.el-dialog__body {
+  color: #000000 !important;
+}
+
+.el-dialog__title {
+  color: #000000 !important;
+}
+
+/* 消息框 */
+.el-message {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #000000 !important;
+}
+
+.el-message__content {
+  color: #000000 !important;
 }
 </style>
