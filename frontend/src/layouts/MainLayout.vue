@@ -6,12 +6,7 @@
           <i class="el-icon-key"></i>
           <span v-show="!sidebarCollapsed" class="logo-text">License Center</span>
         </div>
-        <el-button
-          circle
-          size="small"
-          @click="toggleSidebar"
-          class="collapse-btn glass-btn"
-        >
+        <el-button circle size="small" @click="toggleSidebar" class="collapse-btn glass-btn">
           <i :class="sidebarCollapsed ? 'el-icon-arrow-right' : 'el-icon-arrow-left'"></i>
         </el-button>
       </div>
@@ -22,10 +17,7 @@
             <i class="el-icon-folder-opened"></i>
             <span v-show="!sidebarCollapsed">项目</span>
           </div>
-          <i
-            v-show="!sidebarCollapsed"
-            :class="projectsExpanded ? 'el-icon-arrow-down' : 'el-icon-arrow-right'"
-          ></i>
+          <i v-show="!sidebarCollapsed" :class="projectsExpanded ? 'el-icon-arrow-down' : 'el-icon-arrow-right'"></i>
         </div>
 
         <div v-if="currentProject" class="current-project glass-card" @click="toggleProjectList">
@@ -46,7 +38,7 @@
               :class="{ active: currentProject?.id === project.id }"
               @click="selectProject(project)"
             >
-              <div class="project-icon small">{{ project.projectName.charAt(0) }}</div>
+              <div class="project-icon small">{{ project.projectName?.charAt(0) || 'P' }}</div>
               <div class="project-info">
                 <div class="project-name">{{ project.projectName }}</div>
                 <div class="project-code">{{ project.projectCode }}</div>
@@ -54,12 +46,10 @@
               <i v-if="currentProject?.id === project.id" class="el-icon-check"></i>
             </div>
 
-            <el-button
-              class="create-project-btn glass-btn"
-              @click="showCreateProjectDialog = true"
-            >
+            <el-button class="create-project-btn glass-btn" @click="showCreateProjectDialog = true">
               <i class="el-icon-plus"></i>
-              创建新项目</el-button>
+              创建新项目
+            </el-button>
           </div>
         </transition>
       </div>
@@ -102,12 +92,8 @@
           </el-breadcrumb>
         </div>
         <div class="top-actions">
-          <el-button class="glass-btn" circle>
-            <i class="el-icon-bell"></i>
-          </el-button>
-          <el-button class="glass-btn" circle>
-            <i class="el-icon-setting"></i>
-          </el-button>
+          <el-button class="glass-btn" circle><i class="el-icon-bell"></i></el-button>
+          <el-button class="glass-btn" circle><i class="el-icon-setting"></i></el-button>
         </div>
       </header>
 
@@ -116,19 +102,12 @@
         <div v-else class="empty-state">
           <i class="el-icon-folder-add"></i>
           <p>请选择或创建一个项目</p>
-          <el-button type="primary" @click="showCreateProjectDialog = true">
-            创建项目
-          </el-button>
+          <el-button type="primary" @click="showCreateProjectDialog = true">创建项目</el-button>
         </div>
       </div>
     </main>
 
-    <el-dialog
-      v-model="showCreateProjectDialog"
-      title="创建新项目"
-      width="500px"
-      class="glass-dialog"
-    >
+    <el-dialog v-model="showCreateProjectDialog" title="创建新项目" width="500px" class="glass-dialog">
       <el-form :model="newProject" label-width="100px">
         <el-form-item label="项目名称">
           <el-input v-model="newProject.projectName" placeholder="例如：我的网站"></el-input>
@@ -139,9 +118,9 @@
         <el-form-item label="项目类型">
           <el-select v-model="newProject.projectType" placeholder="请选择">
             <el-option label="网站" value="website"></el-option>
-            <el-option label="Windows软件" value="windows"></el-option>
-            <el-option label="Android应用" value="android"></el-option>
-            <el-option label="API服务" value="api"></el-option>
+            <el-option label="Windows 软件" value="windows"></el-option>
+            <el-option label="Android 应用" value="android"></el-option>
+            <el-option label="API 服务" value="api"></el-option>
             <el-option label="其他" value="other"></el-option>
           </el-select>
         </el-form-item>
@@ -154,7 +133,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showCreateProjectDialog = false">取消</el-button>
-        <el-button type="primary" @click="createProject">创建</el-button>
+        <el-button type="primary" :loading="creatingProject" @click="createProject">创建</el-button>
       </template>
     </el-dialog>
   </div>
@@ -171,6 +150,7 @@ const projectStore = useProjectStore()
 const sidebarCollapsed = ref(false)
 const projectsExpanded = ref(false)
 const showCreateProjectDialog = ref(false)
+const creatingProject = ref(false)
 const username = ref('Admin')
 
 const newProject = ref({
@@ -179,6 +159,7 @@ const newProject = ref({
   projectType: 'website',
   usageMode: 'direct_license'
 })
+
 const projects = computed(() => projectStore.projects)
 const currentProject = computed(() => projectStore.currentProject)
 const menuItems = computed(() => {
@@ -196,6 +177,7 @@ const menuItems = computed(() => {
     { path: '/settings', icon: 'el-icon-setting', label: '项目设置', badge: null }
   ]
 })
+
 function toggleSidebar() {
   sidebarCollapsed.value = !sidebarCollapsed.value
 }
@@ -206,93 +188,79 @@ function toggleProjectList() {
 
 function selectProject(project) {
   projectStore.switchProject(project)
-  ElMessage.success(`已切换到项目：${project.projectName}`)
+  ElMessage.success('已切换到项目：' + project.projectName)
 }
 
 async function createProject() {
+  if (!newProject.value.projectName.trim() || !newProject.value.projectCode.trim()) {
+    ElMessage.warning('请填写项目名称和项目标识')
+    return
+  }
+
+  creatingProject.value = true
   try {
     const result = await projectStore.createProject(newProject.value)
     if (result.success) {
+      const created = projectStore.normalizeProject(result.data?.project || result.data || {})
+      if (created.id) projectStore.switchProject(created)
       ElMessage.success('项目创建成功')
       showCreateProjectDialog.value = false
+      projectsExpanded.value = true
       newProject.value = {
         projectName: '',
         projectCode: '',
         projectType: 'website',
         usageMode: 'direct_license'
       }
+      return
     }
+    ElMessage.error(result.message || '创建失败')
   } catch (error) {
-    ElMessage.error('创建失败：' + error.message)
+    ElMessage.error(error.response?.data?.message || error.message || '创建失败')
+  } finally {
+    creatingProject.value = false
   }
 }
 
 function logout() {
+  localStorage.removeItem('token')
+  localStorage.removeItem('refreshToken')
+  localStorage.removeItem('isLoggedIn')
   router.push('/login')
 }
+
 onMounted(() => {
   projectStore.loadProjects()
 })
 </script>
 
 <style scoped lang="scss">
-
 .app-layout {
   display: flex;
   height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  background-size: 200% 200%;
-  animation: gradientShift 15s ease infinite;
+  background: linear-gradient(135deg, #e0f2fe 0%, #eef2ff 50%, #f8fafc 100%);
   overflow: hidden;
 }
 
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-
-.glass-panel {
-  background: rgba(255, 255, 255, 0.1);
+.glass-panel,
+.glass-card,
+.glass-section {
+  background: rgba(255, 255, 255, 0.94) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-.glass-card {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.12);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  }
-}
-
-.glass-section {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1) !important;
 }
 
 .glass-btn {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  color: white !important;
-  backdrop-filter: blur(10px);
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.2) !important;
-  }
+  background: #ffffff !important;
+  border: 1px solid #d1d5db !important;
+  color: #111827 !important;
 }
 
+.glass-btn:hover {
+  background: #f3f4f6 !important;
+}
 
 .sidebar {
   width: 280px;
@@ -300,16 +268,32 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
+}
 
-  &.collapsed {
-    width: 80px;
-  }
+.sidebar.collapsed {
+  width: 80px;
+}
+
+.logo-section,
+.section-header,
+.current-project,
+.project-item,
+.user-section,
+.user-info,
+.top-bar,
+.nav-item {
+  display: flex;
+  align-items: center;
+}
+
+.logo-section,
+.section-header,
+.top-bar,
+.user-section {
+  justify-content: space-between;
 }
 
 .logo-section {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   margin-bottom: 24px;
 }
 
@@ -319,231 +303,158 @@ onMounted(() => {
   gap: 12px;
   font-size: 24px;
   font-weight: bold;
-  color: white;
-
-  i {
-    font-size: 32px;
-  }
+  color: #111827;
 }
 
+.logo i {
+  font-size: 32px;
+}
+
+.project-selector,
+.nav-item {
+  margin-bottom: 12px;
+}
 
 .project-selector {
-  margin-bottom: 24px;
-
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px;
-    cursor: pointer;
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 14px;
-    font-weight: 500;
-
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-  }
-
-  .current-project {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    cursor: pointer;
-    margin-top: 8px;
-
-    .project-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-      font-size: 18px;
-    }
-
-    .project-info {
-      flex: 1;
-      min-width: 0;
-
-      .project-name {
-        font-weight: 500;
-        color: white;
-        font-size: 14px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .project-token {
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.6);
-        font-family: 'Courier New', monospace;
-      }
-    }
-  }
+  padding: 16px;
+  border-radius: 16px;
 }
 
-.project-list {
-  margin-top: 8px;
-  max-height: 300px;
-  overflow-y: auto;
-
-  .project-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    color: rgba(255, 255, 255, 0.8);
-    transition: all 0.3s;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    &.active {
-      background: rgba(255, 255, 255, 0.15);
-      color: white;
-    }
-
-    .project-icon.small {
-      width: 28px;
-      height: 28px;
-      font-size: 14px;
-      border-radius: 6px;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-    }
-
-    .project-info {
-      flex: 1;
-      min-width: 0;
-
-      .project-name {
-        font-size: 13px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .project-code {
-        font-size: 11px;
-        color: rgba(255, 255, 255, 0.5);
-      }
-    }
-  }
-
-  .create-project-btn {
-    width: 100%;
-    margin-top: 8px;
-  }
+.section-header {
+  cursor: pointer;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 600;
 }
 
+.header-left,
+.project-info,
+.user-details {
+  min-width: 0;
+}
+
+.header-left,
+.current-project,
+.project-item,
+.user-info,
+.nav-item {
+  gap: 12px;
+}
+
+.current-project,
+.project-item {
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.project-item.active,
+.nav-item.active {
+  background: #2563eb !important;
+  color: #ffffff !important;
+}
+
+.project-item.active *,
+.nav-item.active * {
+  color: #ffffff !important;
+}
+
+.project-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.project-icon.small {
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+}
+
+.project-name,
+.username,
+.breadcrumb,
+.nav-item {
+  color: #111827 !important;
+}
+
+.project-token,
+.project-code,
+.user-role {
+  color: #4b5563 !important;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.create-project-btn {
+  width: 100%;
+  margin-top: 10px;
+}
 
 .nav-menu {
   flex: 1;
   overflow-y: auto;
-
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    margin-bottom: 8px;
-    color: rgba(255, 255, 255, 0.8);
-    text-decoration: none;
-    font-size: 14px;
-    position: relative;
-
-    i {
-      font-size: 18px;
-    }
-
-    &.active {
-      background: rgba(255, 255, 255, 0.15);
-      color: white;
-    }
-
-    .badge {
-      margin-left: auto;
-      background: rgba(255, 82, 82, 0.9);
-      color: white;
-      padding: 2px 6px;
-      border-radius: 10px;
-      font-size: 11px;
-    }
-  }
+  margin-top: 12px;
 }
 
+.nav-item {
+  padding: 12px 16px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 14px;
+  position: relative;
+}
+
+.nav-item i {
+  font-size: 18px;
+}
+
+.badge {
+  margin-left: auto;
+  background: #ef4444;
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+}
 
 .user-section {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   margin-top: auto;
-
-  .user-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    .user-details {
-      .username {
-        color: white;
-        font-size: 14px;
-        font-weight: 500;
-      }
-
-      .user-role {
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.6);
-      }
-    }
-  }
-
-  .logout-btn {
-    padding: 8px;
-  }
+  padding: 14px;
+  border-radius: 16px;
 }
 
+.logout-btn {
+  padding: 8px;
+}
 
 .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 24px;
-  padding-left: 0;
+  padding: 24px 24px 24px 0;
 }
 
 .top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 16px 24px;
   margin-bottom: 24px;
   border-radius: 16px;
+}
 
-  .breadcrumb {
-    color: white;
-  }
-
-  .top-actions {
-    display: flex;
-    gap: 12px;
-  }
+.top-actions {
+  display: flex;
+  gap: 12px;
 }
 
 .page-content {
@@ -553,114 +464,34 @@ onMounted(() => {
 }
 
 .empty-state {
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  color: white;
-
-  i {
-    font-size: 64px;
-    margin-bottom: 16px;
-    opacity: 0.6;
-  }
-
-  p {
-    font-size: 18px;
-    margin-bottom: 24px;
-    opacity: 0.8;
-  }
+  color: #111827;
 }
 
-
-.slide-fade-enter-active {
-  transition: all 0.3s ease;
+.empty-state i {
+  color: #2563eb;
+  font-size: 64px;
+  margin-bottom: 16px;
 }
 
+.empty-state p {
+  color: #4b5563;
+  font-size: 18px;
+  margin-bottom: 24px;
+}
+
+.slide-fade-enter-active,
 .slide-fade-leave-active {
-  transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
+  transition: all 0.3s ease;
 }
 
 .slide-fade-enter-from,
 .slide-fade-leave-to {
   transform: translateY(-10px);
   opacity: 0;
-}
-
-
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.3);
-  }
-}
-
-
-.glass-panel,
-.glass-card,
-.glass-section {
-  background: rgba(255, 255, 255, 0.94) !important;
-  border-color: rgba(15, 23, 42, 0.12) !important;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1) !important;
-}
-
-.logo,
-.section-header,
-.project-name,
-.project-code,
-.project-token,
-.nav-item,
-.username,
-.user-role,
-.breadcrumb,
-.empty-state {
-  color: #111827 !important;
-}
-
-.project-token,
-.project-code,
-.user-role,
-.empty-state p {
-  color: #4b5563 !important;
-}
-
-.glass-btn {
-  background: #ffffff !important;
-  border-color: #d1d5db !important;
-  color: #111827 !important;
-}
-
-.glass-btn:hover {
-  background: #f3f4f6 !important;
-}
-
-.nav-item.active {
-  background: #2563eb !important;
-  color: #ffffff !important;
-}
-
-.nav-item.active i,
-.nav-item.active span {
-  color: #ffffff !important;
-}
-
-.badge {
-  color: #ffffff !important;
-}
-
-.empty-state i {
-  color: #2563eb !important;
 }
 </style>

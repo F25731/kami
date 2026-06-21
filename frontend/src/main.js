@@ -7,7 +7,10 @@ import axios from 'axios'
 import App from './App.vue'
 import router from './router'
 
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL
+axios.defaults.baseURL = configuredApiBaseUrl && !configuredApiBaseUrl.includes('localhost')
+  ? configuredApiBaseUrl
+  : '/api'
 axios.defaults.timeout = 30000
 
 axios.interceptors.request.use(
