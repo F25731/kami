@@ -14,56 +14,36 @@
         </el-button>
       </div>
 
-      <div class="project-selector glass-section">
-        <div class="section-header" @click="toggleProjectList">
-          <div class="header-left">
-            <el-icon><FolderOpened /></el-icon>
-            <span v-show="!sidebarCollapsed">项目</span>
-          </div>
-          <el-icon v-show="!sidebarCollapsed">
-            <ArrowDown v-if="projectsExpanded" />
-            <ArrowRight v-else />
-          </el-icon>
+      <div v-show="!sidebarCollapsed" class="project-selector glass-section">
+        <div class="section-header">
+          <span>项目</span>
         </div>
 
-        <div v-if="currentProject" class="current-project glass-card" @click="toggleProjectList">
-          <div class="project-icon">{{ currentProject.projectName?.charAt(0) || 'P' }}</div>
-          <div v-show="!sidebarCollapsed" class="project-info">
-            <div class="project-name">{{ currentProject.projectName }}</div>
-            <div class="project-token">{{ currentProject.projectToken }}</div>
-          </div>
-          <el-icon v-show="!sidebarCollapsed"><ArrowDown /></el-icon>
-        </div>
-
-        <transition name="slide-fade">
-          <div v-show="projectsExpanded && !sidebarCollapsed" class="project-list">
-            <div
-              v-for="project in projects"
-              :key="project.id"
-              class="project-item"
-              :class="{ active: currentProject?.id === project.id }"
-              @click="selectProject(project)"
-            >
-              <div class="project-icon small">{{ project.projectName?.charAt(0) || 'P' }}</div>
-              <div class="project-info">
-                <div class="project-name">{{ project.projectName }}</div>
-                <div class="project-code">{{ project.projectCode }}</div>
-              </div>
-              <el-icon v-if="currentProject?.id === project.id" class="project-check"><Check /></el-icon>
-              <el-button
-                class="project-delete-btn"
-                text
-                type="danger"
-                @click.stop="deleteProject(project)"
-              >删除</el-button>
+        <div class="project-list compact">
+          <div
+            v-for="project in projects"
+            :key="project.id"
+            class="project-item"
+            :class="{ active: currentProject?.id === project.id }"
+            @click="selectProject(project)"
+          >
+            <div class="project-info">
+              <div class="project-name">{{ project.projectName }}</div>
+              <div class="project-code">{{ project.projectCode }}</div>
             </div>
-
-            <el-button class="create-project-btn glass-btn" @click="showCreateProjectDialog = true">
-              <el-icon><Plus /></el-icon>
-              创建新项目
-            </el-button>
+            <span v-if="currentProject?.id === project.id" class="current-mark">当前</span>
+            <el-button
+              class="project-delete-btn"
+              text
+              type="danger"
+              @click.stop="deleteProject(project)"
+            >删除</el-button>
           </div>
-        </transition>
+
+          <el-button class="create-project-btn glass-btn" @click="showCreateProjectDialog = true">
+            + 创建新项目
+          </el-button>
+        </div>
       </div>
 
       <nav class="nav-menu" v-show="!sidebarCollapsed">
@@ -164,18 +144,14 @@ import { useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/project'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  ArrowDown,
-  ArrowRight,
   Bell,
   Box,
-  Check,
   DataLine,
   Document,
   DocumentCopy,
   Expand,
   Fold,
   FolderAdd,
-  FolderOpened,
   Key,
   List,
   Plus,
@@ -188,7 +164,6 @@ import {
 const router = useRouter()
 const projectStore = useProjectStore()
 const sidebarCollapsed = ref(false)
-const projectsExpanded = ref(true)
 const showCreateProjectDialog = ref(false)
 const creatingProject = ref(false)
 const username = ref('Admin')
@@ -220,10 +195,6 @@ const menuItems = computed(() => {
 
 function toggleSidebar() {
   sidebarCollapsed.value = !sidebarCollapsed.value
-}
-
-function toggleProjectList() {
-  if (!sidebarCollapsed.value) projectsExpanded.value = !projectsExpanded.value
 }
 
 function selectProject(project) {
@@ -265,7 +236,6 @@ async function createProject() {
       if (created.id) projectStore.switchProject(created)
       ElMessage.success('项目创建成功')
       showCreateProjectDialog.value = false
-      projectsExpanded.value = true
       newProject.value = {
         projectName: '',
         projectCode: '',
@@ -319,7 +289,6 @@ onMounted(() => {
 
 .logo-section,
 .section-header,
-.current-project,
 .project-item,
 .user-section,
 .user-info,
@@ -390,47 +359,24 @@ onMounted(() => {
   margin-bottom: 12px;
 }
 
-.sidebar.collapsed .project-selector {
-  width: 56px;
-  padding: 10px;
-}
-
-.sidebar.collapsed .section-header,
-.sidebar.collapsed .current-project {
-  justify-content: center;
-}
-
 .section-header {
-  cursor: pointer;
   color: #000000;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
+  margin-bottom: 10px;
 }
 
-.header-left,
-.project-info,
-.user-details {
-  min-width: 0;
+.project-list.compact {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.header-left,
-.current-project,
-.project-item,
-.user-info,
-.nav-item {
-  gap: 12px;
-}
-
-.current-project,
 .project-item {
+  gap: 10px;
   padding: 12px;
   border-radius: 12px;
   cursor: pointer;
-  margin-top: 10px;
-}
-
-.sidebar.collapsed .current-project {
-  padding: 8px;
 }
 
 .project-item.active,
@@ -446,29 +392,10 @@ onMounted(() => {
   color: #000000 !important;
 }
 
-.project-delete-btn {
-  margin-left: auto;
-  padding: 4px 8px;
-}
-
-.project-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.32);
-  color: #000000;
-  font-weight: 800;
-  flex: 0 0 auto;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-}
-
-.project-icon.small {
-  width: 28px;
-  height: 28px;
-  font-size: 12px;
+.project-info,
+.user-details {
+  min-width: 0;
+  flex: 1;
 }
 
 .project-name,
@@ -478,7 +405,6 @@ onMounted(() => {
   color: #000000 !important;
 }
 
-.project-token,
 .project-code,
 .user-role {
   color: #1a1a1a !important;
@@ -488,9 +414,19 @@ onMounted(() => {
   white-space: nowrap;
 }
 
+.current-mark {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: #000000;
+}
+
+.project-delete-btn {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+}
+
 .create-project-btn {
   width: 100%;
-  margin-top: 10px;
 }
 
 .nav-menu {
@@ -501,6 +437,9 @@ onMounted(() => {
 }
 
 .nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 12px 16px;
   border-radius: 12px;
   text-decoration: none;
@@ -527,6 +466,10 @@ onMounted(() => {
   margin-top: auto;
   padding: 14px;
   border-radius: 16px;
+}
+
+.user-info {
+  gap: 12px;
 }
 
 .main-content {
@@ -576,17 +519,6 @@ onMounted(() => {
   font-size: 18px;
 }
 
-.slide-fade-enter-active,
-.slide-fade-leave-active {
-  transition: all 0.25s ease;
-}
-
-.slide-fade-enter-from,
-.slide-fade-leave-to {
-  transform: translateY(-10px);
-  opacity: 0;
-}
-
 @media (max-width: 900px) {
   .sidebar {
     width: 84px;
@@ -595,10 +527,9 @@ onMounted(() => {
   }
 
   .logo-text,
+  .project-selector,
   .nav-menu,
-  .user-section,
-  .project-selector span,
-  .project-info {
+  .user-section {
     display: none !important;
   }
 

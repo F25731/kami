@@ -13,7 +13,11 @@ const normalizeProject = (project = {}) => ({
   bindType: project.bindType ?? project.device_bind_mode ?? '',
   webhookEnabled: project.webhookEnabled ?? project.webhook_enabled ?? false,
   webhookUrl: project.webhookUrl ?? project.webhook_url ?? '',
-  webhookSecret: project.webhookSecret ?? project.webhook_secret ?? ''
+  webhookSecret: project.webhookSecret ?? project.webhook_secret ?? '',
+  webhookEvents: project.webhookEvents ?? project.webhook_events ?? '',
+  status: project.status ?? 'enabled',
+  description: project.description ?? project.remark ?? '',
+  remark: project.remark ?? project.description ?? ''
 })
 
 const toApiProject = (project = {}) => ({
@@ -27,7 +31,8 @@ const toApiProject = (project = {}) => ({
   device_bind_mode: project.bindType,
   webhook_enabled: project.webhookEnabled,
   webhook_url: project.webhookUrl,
-  webhook_secret: project.webhookSecret
+  webhook_secret: project.webhookSecret,
+  webhook_events: project.webhookEvents
 })
 
 export const useProjectStore = defineStore('project', () => {

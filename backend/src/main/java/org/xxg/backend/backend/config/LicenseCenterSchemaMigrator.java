@@ -49,6 +49,7 @@ public class LicenseCenterSchemaMigrator {
                 webhook_enabled TINYINT(1) NOT NULL DEFAULT 0,
                 webhook_url VARCHAR(500) NULL,
                 webhook_secret VARCHAR(255) NULL,
+                webhook_events TEXT NULL,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 UNIQUE KEY uk_projects_code (project_code),
@@ -186,6 +187,7 @@ public class LicenseCenterSchemaMigrator {
         addColumn("user_entitlements", "is_permanent", "TINYINT(1) NOT NULL DEFAULT 0");
         addColumn("user_entitlements", "source_order_no", "VARCHAR(100) NULL");
         addColumn("user_entitlements", "status", "VARCHAR(20) NOT NULL DEFAULT 'active'");
+        addColumn("projects", "webhook_events", "TEXT NULL");
     }
 
     private void migrateOldRowsToDefaultProject() {

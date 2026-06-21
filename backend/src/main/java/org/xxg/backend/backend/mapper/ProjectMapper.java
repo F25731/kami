@@ -64,8 +64,8 @@ public class ProjectMapper {
                 project_name, project_code, project_token, project_type, environment, usage_mode,
                 status, remark, enable_device_bind, device_bind_mode, enable_signature, enable_ip_whitelist,
                 rate_limit_per_minute, max_generate_per_request, max_generate_per_day,
-                webhook_enabled, webhook_url, webhook_secret, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                webhook_enabled, webhook_url, webhook_secret, webhook_events, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             project.getProjectName(), project.getProjectCode(), project.getProjectToken(),
             defaultString(project.getProjectType(), "other"), defaultString(project.getEnvironment(), "production"),
@@ -75,7 +75,7 @@ public class ProjectMapper {
             defaultInt(project.getRateLimitPerMinute(), 120),
             defaultInt(project.getMaxGeneratePerRequest(), 100),
             defaultInt(project.getMaxGeneratePerDay(), 10000),
-            bool(project.getWebhookEnabled()), project.getWebhookUrl(), project.getWebhookSecret(),
+            bool(project.getWebhookEnabled()), project.getWebhookUrl(), project.getWebhookSecret(), project.getWebhookEvents(),
             Timestamp.valueOf(LocalDateTime.now())
         );
     }
@@ -86,7 +86,7 @@ public class ProjectMapper {
                 project_name = ?, project_code = ?, project_type = ?, environment = ?, usage_mode = ?,
                 status = ?, remark = ?, enable_device_bind = ?, device_bind_mode = ?, enable_signature = ?,
                 enable_ip_whitelist = ?, rate_limit_per_minute = ?, max_generate_per_request = ?,
-                max_generate_per_day = ?, webhook_enabled = ?, webhook_url = ?, webhook_secret = ?
+                max_generate_per_day = ?, webhook_enabled = ?, webhook_url = ?, webhook_secret = ?, webhook_events = ?
             WHERE id = ?
             """,
             project.getProjectName(), project.getProjectCode(), defaultString(project.getProjectType(), "other"),
@@ -95,7 +95,7 @@ public class ProjectMapper {
             defaultString(project.getDeviceBindMode(), "none"), bool(project.getEnableSignature()),
             bool(project.getEnableIpWhitelist()), defaultInt(project.getRateLimitPerMinute(), 120),
             defaultInt(project.getMaxGeneratePerRequest(), 100), defaultInt(project.getMaxGeneratePerDay(), 10000),
-            bool(project.getWebhookEnabled()), project.getWebhookUrl(), project.getWebhookSecret(), project.getId());
+            bool(project.getWebhookEnabled()), project.getWebhookUrl(), project.getWebhookSecret(), project.getWebhookEvents(), project.getId());
     }
 
     public void updateStatus(Long id, String status) {
@@ -133,6 +133,7 @@ public class ProjectMapper {
             p.setWebhookEnabled(rs.getInt("webhook_enabled") == 1);
             p.setWebhookUrl(rs.getString("webhook_url"));
             p.setWebhookSecret(rs.getString("webhook_secret"));
+            safeString(rs, "webhook_events", p::setWebhookEvents);
             if (rs.getTimestamp("created_at") != null) {
                 p.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
             }
@@ -149,6 +150,10 @@ public class ProjectMapper {
         try { p.setPricingCount(rs.getInt("pricing_count")); } catch (SQLException ignored) {}
         try { p.setApiKeyCount(rs.getInt("api_key_count")); } catch (SQLException ignored) {}
         try { p.setTodayCallCount(rs.getInt("today_call_count")); } catch (SQLException ignored) {}
+    }
+
+    private void safeString(ResultSet rs, String column, java.util.function.Consumer<String> setter) {
+        try { setter.accept(rs.getString(column)); } catch (SQLException ignored) {}
     }
 
     private int bool(Boolean value) {

@@ -57,6 +57,9 @@ public class Project {
     @JsonProperty("webhook_secret")
     private String webhookSecret;
 
+    @JsonProperty("webhook_events")
+    private String webhookEvents;
+
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
 
@@ -131,6 +134,9 @@ public class Project {
 
     public String getWebhookSecret() { return webhookSecret; }
     public void setWebhookSecret(String webhookSecret) { this.webhookSecret = webhookSecret; }
+
+    public String getWebhookEvents() { return webhookEvents; }
+    public void setWebhookEvents(String webhookEvents) { this.webhookEvents = webhookEvents; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

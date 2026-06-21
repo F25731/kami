@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.xxg.backend.backend.entity.Project;
 import org.xxg.backend.backend.service.ProjectService;
+import org.xxg.backend.backend.service.ProjectWebhookService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,9 +15,11 @@ import java.util.Map;
 @CrossOrigin
 public class ProjectController {
     private final ProjectService projectService;
+    private final ProjectWebhookService projectWebhookService;
 
-    public ProjectController(ProjectService projectService) {
+    public ProjectController(ProjectService projectService, ProjectWebhookService projectWebhookService) {
         this.projectService = projectService;
+        this.projectWebhookService = projectWebhookService;
     }
 
     @GetMapping
@@ -79,6 +82,16 @@ public class ProjectController {
                     "project_token", token,
                     "apiBaseUrl", projectService.buildBaseUrl(project, resolveOrigin(request))
             ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/{id}/test-webhook")
+    public ResponseEntity<Map<String, Object>> testWebhook(@PathVariable Long id) {
+        try {
+            projectWebhookService.test(id);
+            return ResponseEntity.ok(Map.of("success", true, "message", "WebHook test sent"));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
