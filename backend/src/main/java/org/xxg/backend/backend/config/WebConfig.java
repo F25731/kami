@@ -20,8 +20,8 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Override
-    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-        converters.add(responseBodyConverter());
+    public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+        converters.add(0, responseBodyConverter());
     }
 
     @Override

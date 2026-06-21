@@ -60,25 +60,25 @@ public class ProjectAdminDataController {
                                      @RequestParam(required = false) String search,
                                      @RequestParam(required = false) String status,
                                      @RequestParam(required = false) Long packageId) {
-        StringBuilder where = new StringBuilder(" WHERE project_id = ?");
+        StringBuilder where = new StringBuilder(" WHERE c.project_id = ?");
         List<Object> args = new ArrayList<>();
         args.add(projectId);
         if (search != null && !search.isBlank()) {
-            where.append(" AND card_key LIKE ?");
+            where.append(" AND c.card_key LIKE ?");
             args.add("%" + search + "%");
         }
         if (status != null && !status.isBlank()) {
-            where.append(" AND status = ?");
+            where.append(" AND c.status = ?");
             args.add(Integer.parseInt(status));
         }
         if (packageId != null) {
-            where.append(" AND package_id = ?");
+            where.append(" AND c.package_id = ?");
             args.add(packageId);
         }
-        int total = count("SELECT COUNT(*) FROM cards" + where, args.toArray());
+        int total = count("SELECT COUNT(*) FROM cards c" + where, args.toArray());
         args.add(Math.max(1, size));
         args.add(Math.max(0, (page - 1) * size));
-        List<Map<String, Object>> list = query("SELECT * FROM cards" + where + " ORDER BY create_time DESC LIMIT ? OFFSET ?", args.toArray());
+        List<Map<String, Object>> list = query("SELECT c.*, p.package_name AS package_name, p.package_code AS package_code FROM cards c LEFT JOIN card_packages p ON p.id = c.package_id" + where + " ORDER BY c.create_time DESC LIMIT ? OFFSET ?", args.toArray());
         return ok(pageData(list, total));
     }
 
@@ -104,32 +104,45 @@ public class ProjectAdminDataController {
         String cardType = str(pkg.get("cardType"), "count");
         int duration = asInt(pkg.get("durationDays"), 0);
         int countValue = asInt(pkg.get("countValue"), 0);
+        LocalDateTime expireTime = parseDateTime(body.get("expireTime"));
         String prefix = str(body.get("prefix"), "");
         List<Object[]> rows = new ArrayList<>();
+        List<String> cardKeys = new ArrayList<>();
         for (int i = 0; i < quantity; i++) {
             String cardKey = (prefix == null || prefix.isBlank() ? "" : prefix + "-") + randomToken(16);
-            rows.add(new Object[]{projectId, cardKey, cardKey, cardType, duration, countValue, countValue, 0, "none", "plain", 0, Timestamp.valueOf(LocalDateTime.now()), "admin", 1L, "admin", packageId, str(body.get("orderNo"), null), "admin"});
+            cardKeys.add(cardKey);
+            rows.add(new Object[]{projectId, cardKey, cardKey, cardType, duration, countValue, countValue, 0, expireTime == null ? null : Timestamp.valueOf(expireTime), "none", "plain", 0, Timestamp.valueOf(LocalDateTime.now()), "admin", 1L, "admin", packageId, str(body.get("orderNo"), null), "admin"});
         }
-        jdbcTemplate.batchUpdate("INSERT INTO cards (project_id, card_key, encrypted_key, card_type, duration, total_count, remaining_count, status, verify_method, encryption_type, allow_reverify, create_time, creator_type, creator_id, creator_name, package_id, order_no, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", rows);
-        return ok(Map.of("count", quantity));
+        jdbcTemplate.batchUpdate("INSERT INTO cards (project_id, card_key, encrypted_key, card_type, duration, total_count, remaining_count, status, expire_time, verify_method, encryption_type, allow_reverify, create_time, creator_type, creator_id, creator_name, package_id, order_no, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", rows);
+        return ok(Map.of("count", quantity, "cards", cardKeys));
     }
 
     @GetMapping("/packages")
     public Map<String, Object> packages(@PathVariable Long projectId) {
-        return ok(query("SELECT *, count_value AS total_count, duration_days AS total_days, remark AS description FROM card_packages WHERE project_id = ? ORDER BY sort, id", projectId));
+        return ok(query("SELECT p.*, p.count_value AS total_count, p.duration_days AS total_days, p.remark AS description, (SELECT COUNT(*) FROM cards c WHERE c.package_id = p.id) AS card_count FROM card_packages p WHERE p.project_id = ? ORDER BY p.sort, p.id", projectId));
     }
 
     @PostMapping("/packages")
     public Map<String, Object> createPackage(@PathVariable Long projectId, @RequestBody Map<String, Object> body) {
+        String packageCode = str(body.get("packageCode"), null);
+        if (packageCode == null) return fail("Package code is required");
+        if (count("SELECT COUNT(*) FROM card_packages WHERE project_id = ? AND package_code = ?", projectId, packageCode) > 0) {
+            return fail("Package code already exists");
+        }
         jdbcTemplate.update("INSERT INTO card_packages (project_id, package_name, package_code, card_type, count_value, duration_days, is_permanent, price, status, sort, remark, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'enabled', 0, ?, NOW())",
-                projectId, body.get("packageName"), body.get("packageCode"), str(body.get("cardType"), "count"), asInt(body.get("totalCount"), 0), asInt(body.get("totalDays"), 0), 0, body.get("price"), body.get("description"));
+                projectId, body.get("packageName"), packageCode, str(body.get("cardType"), "count"), asInt(body.get("totalCount"), 0), asInt(body.get("totalDays"), 0), 0, body.get("price"), body.get("description"));
         return okMessage("Package created");
     }
 
     @PutMapping("/packages/{packageId}")
     public Map<String, Object> updatePackage(@PathVariable Long projectId, @PathVariable Long packageId, @RequestBody Map<String, Object> body) {
+        String packageCode = str(body.get("packageCode"), null);
+        if (packageCode == null) return fail("Package code is required");
+        if (count("SELECT COUNT(*) FROM card_packages WHERE project_id = ? AND package_code = ? AND id <> ?", projectId, packageCode, packageId) > 0) {
+            return fail("Package code already exists");
+        }
         jdbcTemplate.update("UPDATE card_packages SET package_name=?, package_code=?, card_type=?, count_value=?, duration_days=?, price=?, remark=? WHERE project_id=? AND id=?",
-                body.get("packageName"), body.get("packageCode"), str(body.get("cardType"), "count"), asInt(body.get("totalCount"), 0), asInt(body.get("totalDays"), 0), body.get("price"), body.get("description"), projectId, packageId);
+                body.get("packageName"), packageCode, str(body.get("cardType"), "count"), asInt(body.get("totalCount"), 0), asInt(body.get("totalDays"), 0), body.get("price"), body.get("description"), projectId, packageId);
         return okMessage("Package updated");
     }
 
@@ -309,6 +322,16 @@ public class ProjectAdminDataController {
         if (value == null) return fallback;
         String s = String.valueOf(value);
         return s.isBlank() ? fallback : s;
+    }
+
+    private LocalDateTime parseDateTime(Object value) {
+        if (value == null) return null;
+        String text = String.valueOf(value).trim();
+        if (text.isEmpty()) return null;
+        try { return LocalDateTime.parse(text.replace(" ", "T")); } catch (Exception ignored) {}
+        try { return java.time.OffsetDateTime.parse(text).toLocalDateTime(); } catch (Exception ignored) {}
+        try { return java.time.Instant.parse(text).atZone(java.time.ZoneId.of("Asia/Shanghai")).toLocalDateTime(); } catch (Exception ignored) {}
+        return null;
     }
 
     private String randomToken(int len) {

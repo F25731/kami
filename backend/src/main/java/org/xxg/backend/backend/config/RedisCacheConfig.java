@@ -1,5 +1,6 @@
 package org.xxg.backend.backend.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,31 +16,22 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Redis 缓存配置
+ * Redis cache configuration.
  */
 @Configuration
 @EnableCaching
 public class RedisCacheConfig {
 
     @Bean
-    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-        // 默认缓存配置：5分钟
+    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory, ObjectMapper objectMapper) {
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
             .entryTtl(Duration.ofMinutes(5))
             .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-            .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()))
+            .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer(objectMapper)))
             .disableCachingNullValues();
-
-        // 针对不同缓存名称的自定义配置
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
-
-        // API Key 缓存：5分钟
         cacheConfigurations.put("apiKeys", defaultConfig.entryTtl(Duration.ofMinutes(5)));
-
-        // 项目配置缓存：10分钟
         cacheConfigurations.put("projects", defaultConfig.entryTtl(Duration.ofMinutes(10)));
-
-        // 用户权益缓存：2分钟（更新频繁）
         cacheConfigurations.put("entitlements", defaultConfig.entryTtl(Duration.ofMinutes(2)));
 
         return RedisCacheManager.builder(connectionFactory)
