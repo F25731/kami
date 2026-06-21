@@ -1,14 +1,14 @@
 <template>
   <div class="settings-page">
     <div class="settings-header">
-      <h2>系统设置</h2>
-      <p>维护授权中心的基础信息、数据库任务、登录验证和维护模式。</p>
+      <h2>基础设置</h2>
+      <p>只保留私有授权中心需要的名称、地址和数据库备份设置。</p>
     </div>
 
-    <section class="settings-section" id="settings-basic">
-      <h3>基本设置</h3>
+    <section class="settings-section">
+      <h3>系统信息</h3>
       <div class="settings-grid">
-        <label>系统名称<input v-model="settings.systemName" placeholder="云逸卡密授权中心" /></label>
+        <label>系统名称<input v-model="settings.systemName" placeholder="云逸授权中心" /></label>
         <label>站点地址<input v-model="settings.site_url" placeholder="https://example.com" /></label>
         <label class="wide">系统描述<textarea v-model="settings.systemDescription" rows="3" /></label>
         <label>默认语言
@@ -26,8 +26,8 @@
       </div>
     </section>
 
-    <section class="settings-section" id="settings-database">
-      <h3>数据库设置</h3>
+    <section class="settings-section">
+      <h3>数据库备份</h3>
       <div class="settings-grid">
         <label class="check"><input type="checkbox" v-model="settings.autoBackup" /> 自动备份</label>
         <label>备份频率
@@ -42,28 +42,8 @@
       </div>
     </section>
 
-    <section class="settings-section" id="settings-login">
-      <h3>登录验证</h3>
-      <div class="settings-grid">
-        <label class="check"><input type="checkbox" v-model="settings.qqLogin" /> QQ 登录</label>
-        <label class="check"><input type="checkbox" v-model="settings.wxLogin" /> 微信登录</label>
-        <label class="check"><input type="checkbox" v-model="settings.authenticatorLogin" /> Authenticator 登录</label>
-      </div>
-    </section>
-
-    <section class="settings-section" id="settings-maintenance">
-      <h3>系统维护</h3>
-      <div class="settings-grid">
-        <label class="check"><input type="checkbox" v-model="settings.maintenanceMode" /> 启用维护模式</label>
-        <label class="wide">维护提示<textarea v-model="settings.maintenanceMessage" rows="3" /></label>
-      </div>
-    </section>
-
     <div class="actions">
       <button type="button" class="primary" @click="saveSettings" :disabled="saving">{{ saving ? '保存中...' : '保存设置' }}</button>
-      <button type="button" @click="emit('clear-cache')">清理缓存</button>
-      <button type="button" @click="emit('clear-logs')">清理日志</button>
-      <button type="button" @click="emit('create-backup')">创建备份</button>
     </div>
   </div>
 </template>
@@ -73,11 +53,11 @@ import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { settingsApi } from '../services/api.js'
 
-const emit = defineEmits(['save-settings', 'clear-cache', 'clear-logs', 'create-backup'])
+const emit = defineEmits(['save-settings'])
 
 const saving = ref(false)
 const settings = reactive({
-  systemName: '云逸卡密授权中心',
+  systemName: '云逸授权中心',
   systemDescription: '私有化多项目卡密授权中心',
   site_url: '',
   defaultLanguage: 'zh-CN',
@@ -85,12 +65,7 @@ const settings = reactive({
   autoBackup: false,
   backupFrequency: 'daily',
   backupRetention: 7,
-  dataCompression: true,
-  qqLogin: false,
-  wxLogin: false,
-  authenticatorLogin: false,
-  maintenanceMode: false,
-  maintenanceMessage: '系统维护中，请稍后访问。'
+  dataCompression: true
 })
 
 const loadSettings = async () => {
@@ -100,10 +75,6 @@ const loadSettings = async () => {
       Object.assign(settings, res.data)
       settings.autoBackup = String(settings.autoBackup) === 'true' || settings.autoBackup === true
       settings.dataCompression = String(settings.dataCompression) === 'true' || settings.dataCompression === true
-      settings.qqLogin = String(settings.qqLogin) === 'true' || settings.qqLogin === true
-      settings.wxLogin = String(settings.wxLogin) === 'true' || settings.wxLogin === true
-      settings.authenticatorLogin = String(settings.authenticatorLogin) === 'true' || settings.authenticatorLogin === true
-      settings.maintenanceMode = String(settings.maintenanceMode) === 'true' || settings.maintenanceMode === true
     }
   } catch (error) {
     ElMessage.warning('读取设置失败，将使用默认值')
@@ -114,7 +85,7 @@ const saveSettings = async () => {
   saving.value = true
   try {
     const payload = { ...settings }
-    ;['autoBackup', 'dataCompression', 'qqLogin', 'wxLogin', 'authenticatorLogin', 'maintenanceMode'].forEach(key => {
+    ;['autoBackup', 'dataCompression'].forEach(key => {
       payload[key] = String(payload[key])
     })
     const res = await settingsApi.saveSettings(payload)

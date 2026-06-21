@@ -1,9 +1,9 @@
 import { ElMessage, ElMessageBox } from 'element-plus'
 
-// API服务配置
-// 优先使用环境变量中的配置，如果没有则根据环境自动判断
-// 开发环境使用 http://localhost:8080/api
-// 生产环境使用 /api (通过Nginx反向代理)
+// API鏈嶅姟閰嶇疆
+// 浼樺厛浣跨敤鐜鍙橀噺涓殑閰嶇疆锛屽鏋滄病鏈夊垯鏍规嵁鐜鑷姩鍒ゆ柇
+// 寮€鍙戠幆澧冧娇鐢?http://localhost:8080/api
+// 鐢熶骇鐜浣跨敤 /api (閫氳繃Nginx鍙嶅悜浠ｇ悊)
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 let isRefreshing = false;
 let failedQueue = [];
@@ -20,7 +20,7 @@ const processQueue = (error, token = null) => {
 };
 
 /**
- * 通用的API请求函数
+ * 閫氱敤鐨凙PI璇锋眰鍑芥暟
  */
 async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -100,40 +100,17 @@ async function apiRequest(endpoint, options = {}) {
            processQueue(refreshError, null);
            isRefreshing = false;
            // Clear auth data
-           const storedUserInfo = localStorage.getItem('userInfo');
-           let isAdmin = false;
-           if (storedUserInfo) {
-               try {
-                   const u = JSON.parse(storedUserInfo);
-                   if (u.role === 'admin') isAdmin = true;
-               } catch (e) {}
-           }
-
            localStorage.removeItem('token');
            localStorage.removeItem('refreshToken');
            localStorage.removeItem('user');
            localStorage.removeItem('userInfo');
            localStorage.removeItem('isLoggedIn');
-           
-           // Show popup and redirect
-           ElMessageBox.alert('当前登录已过期，请重新登录', '登录过期', {
+
+           ElMessageBox.alert('当前登录已过期，请重新登录。', '登录过期', {
              confirmButtonText: '确定',
              type: 'warning',
              showClose: false,
-             callback: () => {
-                // If admin, go to admin login (via reload or specific path)
-                // App.vue will handle routing based on URL
-                if (isAdmin) {
-                    // Ensure we are on an admin path so App.vue redirects to admin login
-                    if (!window.location.hash.includes('admin') && !window.location.pathname.includes('admin')) {
-                         window.location.href = '/#/admin';
-                    }
-                    window.location.reload();
-                } else {
-                    // User -> Home
-                    window.location.href = '/';
-                }
-             }
+             callback: () => { window.location.href = '/' }
            });
            
            // Throw to stop execution
@@ -175,11 +152,11 @@ async function apiRequest(endpoint, options = {}) {
 }
 
 /**
- * 认证API服务
+ * 璁よ瘉API鏈嶅姟
  */
 export const authApi = {
   /**
-   * 管理员登录
+   * 绠＄悊鍛樼櫥褰?
    */
   async loginAdmin(username, password, totpCode) {
     return await apiRequest('/auth/admin/login', {
@@ -189,7 +166,7 @@ export const authApi = {
   },
 
   /**
-   * 用户登录
+   * 鐢ㄦ埛鐧诲綍
    */
   async loginUser(username, password) {
     return await apiRequest('/auth/user/login', {
@@ -199,7 +176,7 @@ export const authApi = {
   },
 
   /**
-   * 发送邮箱验证码
+   * 鍙戦€侀偖绠遍獙璇佺爜
    */
   async sendEmailCode(email, type = 'register') {
     return await apiRequest('/auth/email-code', {
@@ -209,7 +186,7 @@ export const authApi = {
   },
 
   /**
-   * 用户注册
+   * 鐢ㄦ埛娉ㄥ唽
    */
   async register(data) {
     return await apiRequest('/auth/register', {
@@ -219,7 +196,7 @@ export const authApi = {
   },
 
   /**
-   * 绑定注册
+   * 缁戝畾娉ㄥ唽
    */
   async registerBind(data) {
     return await apiRequest('/auth/register-bind', {
@@ -243,14 +220,14 @@ export const authApi = {
   },
 
   /**
-   * 获取当前用户信息
+   * 鑾峰彇褰撳墠鐢ㄦ埛淇℃伅
    */
   async getUserInfo() {
     return await apiRequest('/auth/user/info');
   },
 
   /**
-   * 获取TOTP配置信息
+   * 鑾峰彇TOTP閰嶇疆淇℃伅
    */
   async setupTotp(id) {
     return await apiRequest('/auth/totp/setup', {
@@ -260,7 +237,7 @@ export const authApi = {
   },
 
   /**
-   * 启用TOTP
+   * 鍚敤TOTP
    */
   async enableTotp(id, secret, code) {
     return await apiRequest('/auth/totp/enable', {
@@ -270,7 +247,7 @@ export const authApi = {
   },
 
   /**
-   * 禁用TOTP
+   * 绂佺敤TOTP
    */
   async disableTotp(id) {
     return await apiRequest('/auth/totp/disable', {
@@ -280,7 +257,7 @@ export const authApi = {
   },
 
   /**
-   * 发送重置密码验证码
+   * 鍙戦€侀噸缃瘑鐮侀獙璇佺爜
    */
   async sendResetCode(username, email) {
     return await apiRequest('/auth/reset-code', {
@@ -290,7 +267,7 @@ export const authApi = {
   },
 
   /**
-   * 重置密码
+   * 閲嶇疆瀵嗙爜
    */
   async resetPassword(data) {
     return await apiRequest('/auth/reset-password', {
@@ -300,7 +277,7 @@ export const authApi = {
   },
 
   /**
-   * 获取绑定Token
+   * 鑾峰彇缁戝畾Token
    */
   async getBindToken() {
     return await apiRequest('/auth/bind/token', {
@@ -309,7 +286,7 @@ export const authApi = {
   },
 
   /**
-   * 发送TOTP恢复验证码
+   * 鍙戦€乀OTP鎭㈠楠岃瘉鐮?
    */
   async sendRecoveryCode(username) {
     return await apiRequest('/auth/totp/recovery-code', {
@@ -319,7 +296,7 @@ export const authApi = {
   },
 
   /**
-   * 通过恢复码禁用TOTP
+   * 閫氳繃鎭㈠鐮佺鐢═OTP
    */
   async disableTotpByRecovery(username, code) {
     return await apiRequest('/auth/totp/disable-by-recovery', {
@@ -330,39 +307,39 @@ export const authApi = {
 };
 
 /**
- * 系统监控API服务
+ * 绯荤粺鐩戞帶API鏈嶅姟
  */
 export const monitorApi = {
   /**
-   * 获取数据库状态
+   * 鑾峰彇鏁版嵁搴撶姸鎬?
    */
   async getDatabaseStatus() {
     return await apiRequest('/monitor/database');
   },
 
   /**
-   * 获取系统资源状态
+   * 鑾峰彇绯荤粺璧勬簮鐘舵€?
    */
   async getSystemStatus() {
     return await apiRequest('/monitor/system');
   },
 
   /**
-   * 获取API服务状态
+   * 鑾峰彇API鏈嶅姟鐘舵€?
    */
   async getApiStatus() {
     return await apiRequest('/monitor/api');
   },
 
   /**
-   * 获取在线用户信息
+   * 鑾峰彇鍦ㄧ嚎鐢ㄦ埛淇℃伅
    */
   async getOnlineUsers() {
     return await apiRequest('/monitor/users');
   },
 
   /**
-   * 获取所有监控数据
+   * 鑾峰彇鎵€鏈夌洃鎺ф暟鎹?
    */
   async getAllMonitorData() {
     return await apiRequest('/monitor/all');
@@ -370,17 +347,17 @@ export const monitorApi = {
 };
 
 /**
- * 用户管理API服务 (管理员)
+ * 鐢ㄦ埛绠＄悊API鏈嶅姟 (绠＄悊鍛?
  */
 export const userApi = {
-  // 获取用户列表 (分页, 搜索)
+  // 鑾峰彇鐢ㄦ埛鍒楄〃 (鍒嗛〉, 鎼滅储)
   async getUsers(page = 1, size = 10, keyword = '') {
     const params = new URLSearchParams({ page, size });
     if (keyword) params.append('keyword', keyword);
     return await apiRequest(`/admin/users?${params.toString()}`);
   },
 
-  // 创建用户
+  // 鍒涘缓鐢ㄦ埛
   async createUser(userData) {
     return await apiRequest('/admin/users', {
       method: 'POST',
@@ -388,7 +365,7 @@ export const userApi = {
     });
   },
 
-  // 更新用户
+  // 鏇存柊鐢ㄦ埛
   async updateUser(id, userData) {
     return await apiRequest(`/admin/users/${id}`, {
       method: 'PUT',
@@ -396,14 +373,14 @@ export const userApi = {
     });
   },
 
-  // 删除用户
+  // 鍒犻櫎鐢ㄦ埛
   async deleteUser(id) {
     return await apiRequest(`/admin/users/${id}`, {
       method: 'DELETE'
     });
   },
 
-  // 更新用户状态
+  // 鏇存柊鐢ㄦ埛鐘舵€?
   async updateUserStatus(id, status) {
     return await apiRequest(`/admin/users/${id}/status`, {
       method: 'PUT',
@@ -413,11 +390,11 @@ export const userApi = {
 };
 
 /**
- * 在线用户管理API服务
+ * 鍦ㄧ嚎鐢ㄦ埛绠＄悊API鏈嶅姟
  */
 export const onlineUserApi = {
   /**
-   * 用户上线
+   * 鐢ㄦ埛涓婄嚎
    */
   async userLogin(userId, username, nickname) {
     return await apiRequest('/online/login', {
@@ -431,7 +408,7 @@ export const onlineUserApi = {
   },
 
   /**
-   * 用户下线
+   * 鐢ㄦ埛涓嬬嚎
    */
   async userLogout(userId) {
     return await apiRequest('/online/logout', {
@@ -443,7 +420,7 @@ export const onlineUserApi = {
   },
 
   /**
-   * 发送心跳，更新用户活动时间
+   * 鍙戦€佸績璺筹紝鏇存柊鐢ㄦ埛娲诲姩鏃堕棿
    */
   async sendHeartbeat(userId) {
     return await apiRequest('/online/heartbeat', {
@@ -455,14 +432,14 @@ export const onlineUserApi = {
   },
 
   /**
-   * 检查用户是否在线
+   * 妫€鏌ョ敤鎴锋槸鍚﹀湪绾?
    */
   async checkUserOnline(userId) {
     return await apiRequest(`/online/check/${userId}`);
   },
 
   /**
-   * 获取在线用户列表
+   * 鑾峰彇鍦ㄧ嚎鐢ㄦ埛鍒楄〃
    */
   async getOnlineUsers() {
     return await apiRequest('/online/list');
@@ -470,11 +447,11 @@ export const onlineUserApi = {
 };
 
 /**
- * 卡密管理API服务
+ * 鍗″瘑绠＄悊API鏈嶅姟
  */
 export const cardApi = {
   /**
-   * 批量创建卡密
+   * 鎵归噺鍒涘缓鍗″瘑
    */
   async createCards(data) {
     return await apiRequest('/cards/admin/create', {
@@ -484,28 +461,28 @@ export const cardApi = {
   },
 
   /**
-   * 获取所有卡密
+   * 鑾峰彇鎵€鏈夊崱瀵?
    */
   async getAllCards() {
     return await apiRequest('/cards/admin/all');
   },
 
   /**
-   * 获取指定API Key的卡密
+   * 鑾峰彇鎸囧畾API Key鐨勫崱瀵?
    */
   async getApiKeyCards(apiKeyId) {
     return await apiRequest(`/cards/apikey/${apiKeyId}`);
   },
 
   /**
-   * 获取卡密使用趋势
+   * 鑾峰彇鍗″瘑浣跨敤瓒嬪娍
    */
   async getUsageTrend(days = 7) {
     return await apiRequest(`/cards/trend?days=${days}`);
   },
 
   /**
-   * 使用卡密
+   * 浣跨敤鍗″瘑
    */
   async useCard(cardKey, deviceId = 'Unknown', ipAddress = '') {
     return await apiRequest('/cards/use', {
@@ -519,14 +496,14 @@ export const cardApi = {
   },
 
   /**
-   * 获取用户的卡密
+   * 鑾峰彇鐢ㄦ埛鐨勫崱瀵?
    */
   async getUserCards(userId) {
     return await apiRequest(`/cards/user/${userId}`);
   },
 
   /**
-   * 删除卡密
+   * 鍒犻櫎鍗″瘑
    */
   async deleteCard(cardId) {
     return await apiRequest(`/cards/${cardId}`, {
@@ -535,7 +512,7 @@ export const cardApi = {
   },
 
   /**
-   * 管理员：编辑卡密
+   * 绠＄悊鍛橈細缂栬緫鍗″瘑
    */
   async updateCard(cardId, data) {
     return await apiRequest(`/cards/admin/${cardId}`, {
@@ -545,7 +522,7 @@ export const cardApi = {
   },
 
   /**
-   * 管理员：暂停(2) / 恢复启用(1)
+   * 绠＄悊鍛橈細鏆傚仠(2) / 鎭㈠鍚敤(1)
    */
   async updateAdminStatus(cardId, status) {
     return await apiRequest(`/cards/admin/${cardId}/status`, {
@@ -555,7 +532,7 @@ export const cardApi = {
   },
 
   /**
-   * 公开页：查询卡密是否已绑定机器码（无需登录）
+   * 鍏紑椤碉細鏌ヨ鍗″瘑鏄惁宸茬粦瀹氭満鍣ㄧ爜锛堟棤闇€鐧诲綍锛?
    */
   async publicMachineBindQuery(cardKey) {
     return await apiRequest('/public/cards/machine-bind/query', {
@@ -565,7 +542,7 @@ export const cardApi = {
   },
 
   /**
-   * 公开页：解绑机器码与设备 ID（无需登录，须已绑定）
+   * 鍏紑椤碉細瑙ｇ粦鏈哄櫒鐮佷笌璁惧 ID锛堟棤闇€鐧诲綍锛岄』宸茬粦瀹氾級
    */
   async publicMachineUnbind(cardKey) {
     return await apiRequest('/public/cards/machine-bind/unbind', {
@@ -576,18 +553,18 @@ export const cardApi = {
 };
 
 /**
- * 系统设置API服务
+ * 绯荤粺璁剧疆API鏈嶅姟
  */
 export const settingsApi = {
   /**
-   * 获取所有设置
+   * 鑾峰彇鎵€鏈夎缃?
    */
   async getAllSettings() {
     return await apiRequest('/settings/all');
   },
 
   /**
-   * 批量保存设置
+   * 鎵归噺淇濆瓨璁剧疆
    */
   async saveSettings(settings) {
     return await apiRequest('/settings/save', {
@@ -597,7 +574,7 @@ export const settingsApi = {
   },
 
   /**
-   * 发送测试邮件
+   * 鍙戦€佹祴璇曢偖浠?
    */
   async sendTestEmail(to, settings = {}) {
     return await apiRequest('/settings/email/test', {
@@ -608,22 +585,22 @@ export const settingsApi = {
 };
 
 /**
- * 用户统计API服务
+ * 鐢ㄦ埛缁熻API鏈嶅姟
  */
 export const statsApi = {
   /**
-   * 获取仪表盘统计数据
+   * 鑾峰彇浠〃鐩樼粺璁℃暟鎹?
    */
   async getDashboardStats() {
     return await apiRequest('/stats/dashboard');
   },
 
   /**
-   * 获取用户活跃度统计
+   * 鑾峰彇鐢ㄦ埛娲昏穬搴︾粺璁?
    */
   async getUserActivityStats(period = '7d') {
     let days = period;
-    // 如果传入的是 '7d' 格式，提取数字
+    // 濡傛灉浼犲叆鐨勬槸 '7d' 鏍煎紡锛屾彁鍙栨暟瀛?
     if (typeof period === 'string' && period.endsWith('d')) {
         days = period.replace('d', '');
     }
@@ -631,7 +608,7 @@ export const statsApi = {
   },
 
   /**
-   * 获取卡片使用趋势
+   * 鑾峰彇鍗＄墖浣跨敤瓒嬪娍
    */
   async getCardUsageTrends(period = '7') {
     const days = parseInt(period);
@@ -640,11 +617,11 @@ export const statsApi = {
 };
 
 /**
- * 订单API服务
+ * 璁㈠崟API鏈嶅姟
  */
 export const orderApi = {
   /**
-   * 创建订单
+   * 鍒涘缓璁㈠崟
    */
   async createOrder(data) {
     return await apiRequest('/orders', {
@@ -654,7 +631,7 @@ export const orderApi = {
   },
 
   /**
-   * 获取用户订单列表
+   * 鑾峰彇鐢ㄦ埛璁㈠崟鍒楄〃
    * @param {number} userId 
    */
   async getOrders(userId) {
@@ -662,7 +639,7 @@ export const orderApi = {
   },
 
   /**
-   * 获取所有订单（管理员）
+   * 鑾峰彇鎵€鏈夎鍗曪紙绠＄悊鍛橈級
    */
   async getAllOrders(params = {}) {
     // Filter out empty params
@@ -677,7 +654,7 @@ export const orderApi = {
   },
 
   /**
-   * 更新订单状态（管理员）
+   * 鏇存柊璁㈠崟鐘舵€侊紙绠＄悊鍛橈級
    */
   async updateOrderStatus(orderNo, status) {
     return await apiRequest('/orders/admin/updateStatus', {
@@ -688,7 +665,7 @@ export const orderApi = {
 };
 
 /**
- * API Key管理服务
+ * API Key绠＄悊鏈嶅姟
  */
 export const apiKeyApi = {
   async getAllApiKeys() {
@@ -734,7 +711,7 @@ export const apiKeyApi = {
 };
 
 /**
- * 卡密定价API服务
+ * 鍗″瘑瀹氫环API鏈嶅姟
  */
 export const pricingApi = {
   getAllPricing() {
@@ -763,18 +740,18 @@ export const pricingApi = {
 };
 
 /**
- * 用户个人信息API服务
+ * 鐢ㄦ埛涓汉淇℃伅API鏈嶅姟
  */
 export const userProfileApi = {
   /**
-   * 获取个人信息
+   * 鑾峰彇涓汉淇℃伅
    */
   async getProfile() {
     return await apiRequest('/user/profile');
   },
 
   /**
-   * 更新个人信息
+   * 鏇存柊涓汉淇℃伅
    */
   async updateProfile(data) {
     return await apiRequest('/user/profile', {
@@ -784,7 +761,7 @@ export const userProfileApi = {
   },
 
   /**
-   * 上传头像
+   * 涓婁紶澶村儚
    */
   async uploadAvatar(file) {
     const formData = new FormData();
@@ -796,7 +773,7 @@ export const userProfileApi = {
   },
 
   /**
-   * 修改密码
+   * 淇敼瀵嗙爜
    */
   async changePassword(oldPassword, newPassword) {
     return await apiRequest('/user/password', {
@@ -806,14 +783,14 @@ export const userProfileApi = {
   },
 
   /**
-   * 获取社交账号绑定列表
+   * 鑾峰彇绀句氦璐﹀彿缁戝畾鍒楄〃
    */
   async getSocialBindings() {
     return await apiRequest('/user/social');
   },
 
   /**
-   * 绑定社交账号
+   * 缁戝畾绀句氦璐﹀彿
    */
   async bindSocial(token) {
     return await apiRequest('/user/social/bind', {
@@ -823,7 +800,7 @@ export const userProfileApi = {
   },
 
   /**
-   * 解绑社交账号
+   * 瑙ｇ粦绀句氦璐﹀彿
    */
   async unbindSocial(type) {
     return await apiRequest('/user/social/unbind', {
@@ -834,18 +811,18 @@ export const userProfileApi = {
 };
 
 /**
- * 系统维护API服务
+ * 绯荤粺缁存姢API鏈嶅姟
  */
 export const maintenanceApi = {
   /**
-   * 获取维护状态
+   * 鑾峰彇缁存姢鐘舵€?
    */
   async getStatus() {
     return await apiRequest('/maintenance/status');
   },
 
   /**
-   * 更新维护设置
+   * 鏇存柊缁存姢璁剧疆
    */
   async updateSettings(settings) {
     return await apiRequest('/maintenance/update', {
@@ -855,7 +832,7 @@ export const maintenanceApi = {
   },
 
   /**
-   * 创建备份
+   * 鍒涘缓澶囦唤
    */
   async createBackup() {
     return await apiRequest('/backup/create', {
@@ -864,7 +841,7 @@ export const maintenanceApi = {
   },
 
   /**
-   * 清理缓存
+   * 娓呯悊缂撳瓨
    */
   async clearCache() {
     return await apiRequest('/maintenance/clear-cache', {
@@ -873,11 +850,81 @@ export const maintenanceApi = {
   },
 
   /**
-   * 清理日志
+   * 娓呯悊鏃ュ織
    */
   async clearLogs() {
     return await apiRequest('/maintenance/clear-logs', {
         method: 'POST'
+    });
+  }
+};
+
+/**
+ * Project management API.
+ */
+export const projectApi = {
+  async getProjects() {
+    return await apiRequest('/admin/projects');
+  },
+
+  async getProject(id) {
+    return await apiRequest(`/admin/projects/${id}`);
+  },
+
+  async createProject(data) {
+    return await apiRequest('/admin/projects', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+
+  async updateProject(id, data) {
+    return await apiRequest(`/admin/projects/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  },
+
+  async updateStatus(id, status) {
+    return await apiRequest(`/admin/projects/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status })
+    });
+  },
+
+  async regenerateToken(id) {
+    return await apiRequest(`/admin/projects/${id}/regenerate-token`, {
+      method: 'POST'
+    });
+  },
+
+  async deleteProject(id) {
+    return await apiRequest(`/admin/projects/${id}`, {
+      method: 'DELETE'
+    });
+  },
+
+  async getApiKeys(projectId) {
+    return await apiRequest(`/admin/projects/${projectId}/api-keys`);
+  },
+
+  async createApiKey(projectId, data) {
+    return await apiRequest(`/admin/projects/${projectId}/api-keys`, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  },
+
+  async rotateApiKey(projectId, id) {
+    return await apiRequest(`/admin/projects/${projectId}/api-keys/${id}/rotate`, {
+      method: 'POST'
+    });
+  },
+
+  async updateApiKeyStatus(projectId, id, status) {
+    return await apiRequest(`/admin/projects/${projectId}/api-keys/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status })
     });
   }
 };
@@ -897,5 +944,8 @@ export default {
   userApi,
   userProfileApi,
   maintenanceApi,
-  pricingApi
+  pricingApi,
+  projectApi
 };
+
+
