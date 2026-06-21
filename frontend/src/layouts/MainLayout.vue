@@ -1,23 +1,29 @@
-<template>
+﻿<template>
   <div class="app-layout">
     <aside class="sidebar glass-panel" :class="{ collapsed: sidebarCollapsed }">
       <div class="logo-section">
         <div class="logo">
-          <i class="el-icon-key"></i>
+          <el-icon class="logo-icon"><Key /></el-icon>
           <span v-show="!sidebarCollapsed" class="logo-text">License Center</span>
         </div>
-        <el-button circle size="small" @click="toggleSidebar" class="collapse-btn glass-btn">
-          <i :class="sidebarCollapsed ? 'el-icon-arrow-right' : 'el-icon-arrow-left'"></i>
+        <el-button circle size="small" @click="toggleSidebar" class="collapse-btn glass-btn" title="收起侧栏">
+          <el-icon>
+            <Expand v-if="sidebarCollapsed" />
+            <Fold v-else />
+          </el-icon>
         </el-button>
       </div>
 
       <div class="project-selector glass-section">
-        <div class="section-header" @click="projectsExpanded = !projectsExpanded">
+        <div class="section-header" @click="toggleProjectList">
           <div class="header-left">
-            <i class="el-icon-folder-opened"></i>
+            <el-icon><FolderOpened /></el-icon>
             <span v-show="!sidebarCollapsed">项目</span>
           </div>
-          <i v-show="!sidebarCollapsed" :class="projectsExpanded ? 'el-icon-arrow-down' : 'el-icon-arrow-right'"></i>
+          <el-icon v-show="!sidebarCollapsed">
+            <ArrowDown v-if="projectsExpanded" />
+            <ArrowRight v-else />
+          </el-icon>
         </div>
 
         <div v-if="currentProject" class="current-project glass-card" @click="toggleProjectList">
@@ -26,7 +32,7 @@
             <div class="project-name">{{ currentProject.projectName }}</div>
             <div class="project-token">{{ currentProject.projectToken }}</div>
           </div>
-          <i v-show="!sidebarCollapsed" class="el-icon-arrow-down"></i>
+          <el-icon v-show="!sidebarCollapsed"><ArrowDown /></el-icon>
         </div>
 
         <transition name="slide-fade">
@@ -43,9 +49,8 @@
                 <div class="project-name">{{ project.projectName }}</div>
                 <div class="project-code">{{ project.projectCode }}</div>
               </div>
-              <i v-if="currentProject?.id === project.id" class="el-icon-check"></i>
+              <el-icon v-if="currentProject?.id === project.id" class="project-check"><Check /></el-icon>
               <el-button
-                v-if="project.projectCode !== 'default'"
                 class="project-delete-btn"
                 text
                 type="danger"
@@ -54,7 +59,7 @@
             </div>
 
             <el-button class="create-project-btn glass-btn" @click="showCreateProjectDialog = true">
-              <i class="el-icon-plus"></i>
+              <el-icon><Plus /></el-icon>
               创建新项目
             </el-button>
           </div>
@@ -69,7 +74,7 @@
           class="nav-item glass-card"
           :class="{ active: $route.path.includes(item.path) }"
         >
-          <i :class="item.icon"></i>
+          <el-icon><component :is="item.icon" /></el-icon>
           <span>{{ item.label }}</span>
           <span v-if="item.badge" class="badge">{{ item.badge }}</span>
         </router-link>
@@ -83,8 +88,8 @@
             <div class="user-role">管理员</div>
           </div>
         </div>
-        <el-button class="logout-btn glass-btn" @click="logout">
-          <i class="el-icon-switch-button"></i>
+        <el-button class="logout-btn glass-btn" circle title="退出登录" @click="logout">
+          <el-icon><SwitchButton /></el-icon>
         </el-button>
       </div>
     </aside>
@@ -99,17 +104,24 @@
           </el-breadcrumb>
         </div>
         <div class="top-actions">
-          <el-button class="glass-btn" circle><i class="el-icon-bell"></i></el-button>
-          <el-button class="glass-btn" circle><i class="el-icon-setting"></i></el-button>
+          <el-button class="icon-btn glass-btn" circle title="通知">
+            <el-icon><Bell /></el-icon>
+          </el-button>
+          <el-button class="icon-btn glass-btn" circle title="设置" @click="router.push('/settings')">
+            <el-icon><Setting /></el-icon>
+          </el-button>
         </div>
       </header>
 
       <div class="page-content">
         <router-view v-if="currentProject"></router-view>
-        <div v-else class="empty-state">
-          <i class="el-icon-folder-add"></i>
-          <p>请选择或创建一个项目</p>
-          <el-button type="primary" @click="showCreateProjectDialog = true">创建项目</el-button>
+        <div v-else class="empty-state glass-panel">
+          <el-icon><FolderAdd /></el-icon>
+          <p>请先创建一个项目</p>
+          <el-button type="primary" @click="showCreateProjectDialog = true">
+            <el-icon><Plus /></el-icon>
+            创建项目
+          </el-button>
         </div>
       </div>
     </main>
@@ -133,8 +145,8 @@
         </el-form-item>
         <el-form-item label="使用模式">
           <el-radio-group v-model="newProject.usageMode">
-            <el-radio label="direct_license">直接授权（软件/APP）</el-radio>
-            <el-radio label="redeem_to_account">兑换到账户（网站）</el-radio>
+            <el-radio label="direct_license">直接授权（软件/APP 直接验证卡密）</el-radio>
+            <el-radio label="redeem_to_account">兑换到账户（网站/商城，用户兑换卡密到账户）</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -151,11 +163,32 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/project'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  ArrowDown,
+  ArrowRight,
+  Bell,
+  Box,
+  Check,
+  DataLine,
+  Document,
+  DocumentCopy,
+  Expand,
+  Fold,
+  FolderAdd,
+  FolderOpened,
+  Key,
+  List,
+  Plus,
+  Setting,
+  SwitchButton,
+  Tickets,
+  User
+} from '@element-plus/icons-vue'
 
 const router = useRouter()
 const projectStore = useProjectStore()
 const sidebarCollapsed = ref(false)
-const projectsExpanded = ref(false)
+const projectsExpanded = ref(true)
 const showCreateProjectDialog = ref(false)
 const creatingProject = ref(false)
 const username = ref('Admin')
@@ -173,15 +206,15 @@ const menuItems = computed(() => {
   if (!currentProject.value) return []
 
   return [
-    { path: '/dashboard', icon: 'el-icon-data-line', label: '数据看板', badge: null },
-    { path: '/cards', icon: 'el-icon-tickets', label: '卡密管理', badge: null },
-    { path: '/packages', icon: 'el-icon-box', label: '套餐模板', badge: null },
-    { path: '/api-keys', icon: 'el-icon-key', label: 'API密钥', badge: null },
-    { path: '/api-docs', icon: 'el-icon-document', label: 'API文档', badge: null },
-    { path: '/orders', icon: 'el-icon-list', label: '发卡订单', badge: null },
-    { path: '/entitlements', icon: 'el-icon-user', label: '用户权益', badge: null },
-    { path: '/logs', icon: 'el-icon-document-copy', label: '调用日志', badge: null },
-    { path: '/settings', icon: 'el-icon-setting', label: '项目设置', badge: null }
+    { path: '/dashboard', icon: DataLine, label: '数据看板', badge: null },
+    { path: '/cards', icon: Tickets, label: '卡密管理', badge: null },
+    { path: '/packages', icon: Box, label: '套餐模板', badge: null },
+    { path: '/api-keys', icon: Key, label: 'API密钥', badge: null },
+    { path: '/api-docs', icon: Document, label: 'API文档', badge: null },
+    { path: '/orders', icon: List, label: '发卡订单', badge: null },
+    { path: '/entitlements', icon: User, label: '用户权益', badge: null },
+    { path: '/logs', icon: DocumentCopy, label: '调用日志', badge: null },
+    { path: '/settings', icon: Setting, label: '项目设置', badge: null }
   ]
 })
 
@@ -190,7 +223,7 @@ function toggleSidebar() {
 }
 
 function toggleProjectList() {
-  projectsExpanded.value = !projectsExpanded.value
+  if (!sidebarCollapsed.value) projectsExpanded.value = !projectsExpanded.value
 }
 
 function selectProject(project) {
@@ -200,7 +233,11 @@ function selectProject(project) {
 
 async function deleteProject(project) {
   try {
-    await ElMessageBox.confirm('确定要删除项目"' + project.projectName + '"吗？删除后无法恢复。', '删除确认', { type: 'warning' })
+    await ElMessageBox.confirm(
+      '确定要删除项目“' + project.projectName + '”吗？删除后该项目不会再显示。',
+      '删除确认',
+      { type: 'warning' }
+    )
     const result = await projectStore.deleteProject(project.id)
     if (result.success) {
       ElMessage.success('项目已删除')
@@ -265,40 +302,19 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.glass-panel,
-.glass-card,
-.glass-section {
-  background: rgba(255, 255, 255, 0.15) !important;
-  backdrop-filter: blur(30px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
-}
-
-.glass-btn {
-  background: rgba(255, 255, 255, 0.2) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  color: #000000 !important;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-}
-
-.glass-btn:hover {
-  background: rgba(255, 255, 255, 0.3) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
 .sidebar {
   width: 280px;
-  padding: 24px 16px;
+  padding: 20px 16px;
   display: flex;
   flex-direction: column;
-  transition: width 0.3s ease;
+  transition: width 0.25s ease, padding 0.25s ease;
+  overflow: hidden;
 }
 
 .sidebar.collapsed {
-  width: 80px;
+  width: 78px;
+  padding: 18px 10px;
+  align-items: center;
 }
 
 .logo-section,
@@ -321,37 +337,74 @@ onMounted(() => {
 }
 
 .logo-section {
+  width: 100%;
   margin-bottom: 24px;
+  gap: 10px;
+}
+
+.sidebar.collapsed .logo-section {
+  justify-content: center;
 }
 
 .logo {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 24px;
-  font-weight: bold;
+  min-width: 0;
   color: #000000;
+  font-size: 24px;
+  font-weight: 800;
 }
 
-.logo i {
-  font-size: 32px;
+.logo-icon {
+  font-size: 30px;
+  flex: 0 0 auto;
 }
 
-.project-selector,
-.nav-item {
-  margin-bottom: 12px;
+.logo-text {
+  white-space: nowrap;
+}
+
+.collapse-btn,
+.icon-btn,
+.logout-btn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.collapse-btn .el-icon,
+.icon-btn .el-icon,
+.logout-btn .el-icon {
+  color: #000000;
+  font-size: 18px;
 }
 
 .project-selector {
+  width: 100%;
   padding: 16px;
   border-radius: 16px;
+  margin-bottom: 12px;
+}
+
+.sidebar.collapsed .project-selector {
+  width: 56px;
+  padding: 10px;
+}
+
+.sidebar.collapsed .section-header,
+.sidebar.collapsed .current-project {
+  justify-content: center;
 }
 
 .section-header {
   cursor: pointer;
   color: #000000;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .header-left,
@@ -376,12 +429,16 @@ onMounted(() => {
   margin-top: 10px;
 }
 
+.sidebar.collapsed .current-project {
+  padding: 8px;
+}
+
 .project-item.active,
 .nav-item.active {
-  background: rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.32) !important;
   color: #000000 !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.48) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.16) !important;
 }
 
 .project-item.active *,
@@ -391,11 +448,7 @@ onMounted(() => {
 
 .project-delete-btn {
   margin-left: auto;
-  padding: 4px 6px;
-}
-
-.project-item.active .project-delete-btn {
-  color: #ffffff !important;
+  padding: 4px 8px;
 }
 
 .project-icon {
@@ -405,12 +458,11 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+  background: rgba(255, 255, 255, 0.32);
   color: #000000;
-  font-weight: 700;
+  font-weight: 800;
   flex: 0 0 auto;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.45);
 }
 
 .project-icon.small {
@@ -443,6 +495,7 @@ onMounted(() => {
 
 .nav-menu {
   flex: 1;
+  width: 100%;
   overflow-y: auto;
   margin-top: 12px;
 }
@@ -453,29 +506,27 @@ onMounted(() => {
   text-decoration: none;
   font-size: 14px;
   position: relative;
+  margin-bottom: 12px;
 }
 
-.nav-item i {
+.nav-item .el-icon {
   font-size: 18px;
 }
 
 .badge {
   margin-left: auto;
   background: #ef4444;
-  color: #ffffff;
+  color: #ffffff !important;
   padding: 2px 6px;
   border-radius: 10px;
   font-size: 11px;
 }
 
 .user-section {
+  width: 100%;
   margin-top: auto;
   padding: 14px;
   border-radius: 16px;
-}
-
-.logout-btn {
-  padding: 8px;
 }
 
 .main-content {
@@ -483,7 +534,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 24px 24px 24px 0;
+  padding: 18px 18px 18px 0;
 }
 
 .top-bar {
@@ -504,35 +555,55 @@ onMounted(() => {
 }
 
 .empty-state {
-  height: 100%;
+  min-height: 420px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   color: #000000;
+  border-radius: 16px;
+  gap: 16px;
 }
 
-.empty-state i {
+.empty-state .el-icon {
   color: #000000;
   font-size: 64px;
-  margin-bottom: 16px;
-  opacity: 0.7;
+  opacity: 0.8;
 }
 
 .empty-state p {
   color: #1a1a1a;
   font-size: 18px;
-  margin-bottom: 24px;
 }
 
 .slide-fade-enter-active,
 .slide-fade-leave-active {
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
 }
 
 .slide-fade-enter-from,
 .slide-fade-leave-to {
   transform: translateY(-10px);
   opacity: 0;
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 84px;
+    padding: 18px 10px;
+    align-items: center;
+  }
+
+  .logo-text,
+  .nav-menu,
+  .user-section,
+  .project-selector span,
+  .project-info {
+    display: none !important;
+  }
+
+  .main-content {
+    padding: 12px;
+  }
 }
 </style>

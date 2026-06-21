@@ -88,13 +88,11 @@ public class ProjectService {
     }
 
     @Transactional
+    @CacheEvict(value = "projects", allEntries = true)
     public void deleteProject(Long id) {
         Project existing = projectMapper.findById(id);
         if (existing == null) {
             throw new RuntimeException("Project not found");
-        }
-        if ("default".equals(existing.getProjectCode())) {
-            throw new RuntimeException("Default project cannot be deleted");
         }
         projectMapper.delete(id);
     }

@@ -4,6 +4,8 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class LicenseCenterSchemaMigrator {
     private final JdbcTemplate jdbcTemplate;
@@ -15,7 +17,6 @@ public class LicenseCenterSchemaMigrator {
     @PostConstruct
     public void migrate() {
         createProjectsTable();
-        ensureDefaultProject();
         ensureProjectColumns();
         ensureApiKeyColumns();
         ensureOrderColumns();
@@ -54,20 +55,6 @@ public class LicenseCenterSchemaMigrator {
                 UNIQUE KEY uk_projects_token (project_token)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
             """);
-    }
-
-    private void ensureDefaultProject() {
-        Integer count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM projects WHERE project_code = 'default'", Integer.class);
-        if (count == null || count == 0) {
-            jdbcTemplate.update("""
-                INSERT INTO projects (
-                    project_name, project_code, project_token, project_type, environment, usage_mode,
-                    status, remark, enable_device_bind, device_bind_mode
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, "Default Project", "default", "Default", "other", "production",
-                    "direct_license", "enabled", "Migrated from the original single-project data", 0, "none");
-        }
     }
 
     private void ensureProjectColumns() {
@@ -202,11 +189,13 @@ public class LicenseCenterSchemaMigrator {
     }
 
     private void migrateOldRowsToDefaultProject() {
-        Long defaultProjectId = jdbcTemplate.queryForObject(
-                "SELECT id FROM projects WHERE project_code = 'default' LIMIT 1", Long.class);
-        if (defaultProjectId == null) {
+        List<Long> defaultProjectIds = jdbcTemplate.query(
+                "SELECT id FROM projects WHERE project_code = 'default' LIMIT 1",
+                (rs, rowNum) -> rs.getLong("id"));
+        if (defaultProjectIds.isEmpty()) {
             return;
         }
+        Long defaultProjectId = defaultProjectIds.get(0);
         jdbcTemplate.update("UPDATE cards SET project_id = ? WHERE project_id IS NULL", defaultProjectId);
         jdbcTemplate.update("UPDATE card_pricing SET project_id = ? WHERE project_id IS NULL", defaultProjectId);
         jdbcTemplate.update("UPDATE api_keys SET project_id = ? WHERE project_id IS NULL", defaultProjectId);

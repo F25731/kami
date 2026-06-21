@@ -24,15 +24,8 @@ body {
     'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #43e97b 100%);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
-}
-
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  background: linear-gradient(135deg, #b569f2 0%, #f47be6 45%, #88a8ff 100%);
+  background-attachment: fixed;
 }
 
 .el-button {
@@ -155,6 +148,63 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
+
+.glass-btn .el-icon,
+.el-button .el-icon,
+.el-button i[class^="el-icon-"],
+.el-button i[class*=" el-icon-"],
+i[class^="el-icon-"],
+i[class*=" el-icon-"] {
+  color: #000000 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1em;
+  min-height: 1em;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.el-button.is-circle,
+.el-button.is-text {
+  background: rgba(255, 255, 255, 0.28) !important;
+  border: 1px solid rgba(255, 255, 255, 0.42) !important;
+  color: #000000 !important;
+}
+
+.el-icon-plus::before,
+.el-icon-folder-add::before { content: "+"; }
+.el-icon-arrow-left::before { content: "<"; }
+.el-icon-arrow-right::before { content: ">"; }
+.el-icon-arrow-down::before { content: "v"; }
+.el-icon-check::before,
+.el-icon-success::before { content: "OK"; font-size: 11px; }
+.el-icon-copy-document::before { content: "C"; }
+.el-icon-link::before { content: "L"; }
+.el-icon-refresh::before { content: "R"; }
+.el-icon-delete::before { content: "X"; }
+.el-icon-edit::before { content: "E"; }
+.el-icon-key::before { content: "K"; }
+.el-icon-setting::before { content: "S"; }
+.el-icon-bell::before { content: "N"; }
+.el-icon-switch-button::before { content: "Q"; }
+.el-icon-folder-opened::before { content: "F"; }
+.el-icon-data-line::before { content: "D"; }
+.el-icon-tickets::before { content: "T"; }
+.el-icon-box::before { content: "B"; }
+.el-icon-document::before { content: "A"; }
+.el-icon-list::before { content: "O"; }
+.el-icon-user::before { content: "U"; }
+.el-icon-warning::before,
+.el-icon-warning-outline::before { content: "!"; }
+.el-icon-search::before { content: ""; }
+.el-icon-download::before { content: "DL"; font-size: 11px; }
+.el-icon-timer::before,
+.el-icon-time::before { content: "T"; }
+.el-icon-top::before { content: "^"; }
+.el-icon-bottom::before { content: "v"; }
+.el-icon-money::before { content: "$"; }
 
 .nav-item.active,
 .nav-item.router-link-active {
