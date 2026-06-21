@@ -1,6 +1,34 @@
-﻿import { defineStore } from 'pinia'
+import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axios from 'axios'
+
+const normalizeProject = (project = {}) => ({
+  ...project,
+  projectName: project.projectName ?? project.project_name ?? '',
+  projectCode: project.projectCode ?? project.project_code ?? '',
+  projectToken: project.projectToken ?? project.project_token ?? '',
+  projectType: project.projectType ?? project.project_type ?? '',
+  usageMode: project.usageMode ?? project.usage_mode ?? '',
+  deviceBindEnabled: project.deviceBindEnabled ?? project.enable_device_bind ?? false,
+  bindType: project.bindType ?? project.device_bind_mode ?? '',
+  webhookEnabled: project.webhookEnabled ?? project.webhook_enabled ?? false,
+  webhookUrl: project.webhookUrl ?? project.webhook_url ?? '',
+  webhookSecret: project.webhookSecret ?? project.webhook_secret ?? ''
+})
+
+const toApiProject = (project = {}) => ({
+  project_name: project.projectName,
+  project_code: project.projectCode,
+  project_type: project.projectType,
+  usage_mode: project.usageMode,
+  status: project.status,
+  remark: project.description,
+  enable_device_bind: project.deviceBindEnabled,
+  device_bind_mode: project.bindType,
+  webhook_enabled: project.webhookEnabled,
+  webhook_url: project.webhookUrl,
+  webhook_secret: project.webhookSecret
+})
 
 export const useProjectStore = defineStore('project', () => {
   const projects = ref([])
@@ -14,14 +42,12 @@ export const useProjectStore = defineStore('project', () => {
     loading.value = true
     try {
       const { data } = await axios.get('/admin/projects')
-      projects.value = data.data || []
+      projects.value = (data.data || []).map(normalizeProject)
 
       const lastProjectId = localStorage.getItem('currentProjectId')
       if (lastProjectId) {
         const project = projects.value.find(p => p.id === parseInt(lastProjectId))
-        if (project) {
-          currentProject.value = project
-        }
+        if (project) currentProject.value = project
       }
 
       if (!currentProject.value && projects.value.length > 0) {
@@ -35,13 +61,13 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   function switchProject(project) {
-    currentProject.value = project
+    currentProject.value = normalizeProject(project)
     localStorage.setItem('currentProjectId', project.id)
   }
 
   async function createProject(projectData) {
     try {
-      const { data } = await axios.post('/admin/projects', projectData)
+      const { data } = await axios.post('/admin/projects', toApiProject(projectData))
       if (data.success) {
         await loadProjects()
         return data
@@ -61,6 +87,8 @@ export const useProjectStore = defineStore('project', () => {
     loading,
     loadProjects,
     switchProject,
-    createProject
+    createProject,
+    normalizeProject,
+    toApiProject
   }
 })

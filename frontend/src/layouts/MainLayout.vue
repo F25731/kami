@@ -1,9 +1,6 @@
-﻿<!-- 鐜荤拑鎷熸€侀鏍肩殑涓诲竷灞€ -->
 <template>
   <div class="app-layout">
-    <!-- 宸︿晶杈规爮 -->
     <aside class="sidebar glass-panel" :class="{ collapsed: sidebarCollapsed }">
-      <!-- Logo 鍖哄煙 -->
       <div class="logo-section">
         <div class="logo">
           <i class="el-icon-key"></i>
@@ -19,12 +16,11 @@
         </el-button>
       </div>
 
-      <!-- 椤圭洰閫夋嫨鍣?-->
       <div class="project-selector glass-section">
         <div class="section-header" @click="projectsExpanded = !projectsExpanded">
           <div class="header-left">
             <i class="el-icon-folder-opened"></i>
-            <span v-show="!sidebarCollapsed">椤圭洰</span>
+            <span v-show="!sidebarCollapsed">项目</span>
           </div>
           <i
             v-show="!sidebarCollapsed"
@@ -32,7 +28,6 @@
           ></i>
         </div>
 
-        <!-- 褰撳墠椤圭洰 -->
         <div v-if="currentProject" class="current-project glass-card" @click="toggleProjectList">
           <div class="project-icon">{{ currentProject.projectName?.charAt(0) || 'P' }}</div>
           <div v-show="!sidebarCollapsed" class="project-info">
@@ -42,7 +37,6 @@
           <i v-show="!sidebarCollapsed" class="el-icon-arrow-down"></i>
         </div>
 
-        <!-- 椤圭洰鍒楄〃涓嬫媺 -->
         <transition name="slide-fade">
           <div v-show="projectsExpanded && !sidebarCollapsed" class="project-list">
             <div
@@ -65,12 +59,11 @@
               @click="showCreateProjectDialog = true"
             >
               <i class="el-icon-plus"></i>
-              鍒涘缓鏂伴」鐩?            </el-button>
+              创建新项目</el-button>
           </div>
         </transition>
       </div>
 
-      <!-- 瀵艰埅鑿滃崟 -->
       <nav class="nav-menu" v-show="!sidebarCollapsed">
         <router-link
           v-for="item in menuItems"
@@ -85,7 +78,6 @@
         </router-link>
       </nav>
 
-      <!-- 鐢ㄦ埛淇℃伅 -->
       <div class="user-section glass-section" v-show="!sidebarCollapsed">
         <div class="user-info">
           <el-avatar :size="36">{{ username?.charAt(0) || 'U' }}</el-avatar>
@@ -100,15 +92,13 @@
       </div>
     </aside>
 
-    <!-- 涓诲唴瀹瑰尯 -->
     <main class="main-content">
-      <!-- 椤堕儴鏍?-->
       <header class="top-bar glass-panel">
         <div class="breadcrumb">
           <el-breadcrumb separator="/">
             <el-breadcrumb-item :to="{ path: '/' }">控制台</el-breadcrumb-item>
             <el-breadcrumb-item v-if="currentProject">{{ currentProject.projectName }}</el-breadcrumb-item>
-            <el-breadcrumb-item>{{ $route.meta.title || '椤甸潰' }}</el-breadcrumb-item>
+            <el-breadcrumb-item>{{ $route.meta.title || '页面' }}</el-breadcrumb-item>
           </el-breadcrumb>
         </div>
         <div class="top-actions">
@@ -121,20 +111,18 @@
         </div>
       </header>
 
-      <!-- 椤甸潰鍐呭 -->
       <div class="page-content">
         <router-view v-if="currentProject"></router-view>
         <div v-else class="empty-state">
           <i class="el-icon-folder-add"></i>
           <p>请选择或创建一个项目</p>
           <el-button type="primary" @click="showCreateProjectDialog = true">
-            鍒涘缓椤圭洰
+            创建项目
           </el-button>
         </div>
       </div>
     </main>
 
-    <!-- 鍒涘缓椤圭洰瀵硅瘽妗?-->
     <el-dialog
       v-model="showCreateProjectDialog"
       title="创建新项目"
@@ -180,8 +168,6 @@ import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const projectStore = useProjectStore()
-
-// 状态
 const sidebarCollapsed = ref(false)
 const projectsExpanded = ref(false)
 const showCreateProjectDialog = ref(false)
@@ -193,29 +179,23 @@ const newProject = ref({
   projectType: 'website',
   usageMode: 'direct_license'
 })
-
-// 计算属性
 const projects = computed(() => projectStore.projects)
 const currentProject = computed(() => projectStore.currentProject)
-
-// 菜单项
 const menuItems = computed(() => {
   if (!currentProject.value) return []
 
   return [
-    { path: '/dashboard', icon: 'el-icon-data-line', label: '鏁版嵁鐪嬫澘', badge: null },
-    { path: '/cards', icon: 'el-icon-tickets', label: '鍗″瘑绠＄悊', badge: null },
-    { path: '/packages', icon: 'el-icon-box', label: '濂楅妯℃澘', badge: null },
-    { path: '/api-keys', icon: 'el-icon-key', label: 'API瀵嗛挜', badge: null },
-    { path: '/api-docs', icon: 'el-icon-document', label: 'API鏂囨。', badge: null },
-    { path: '/orders', icon: 'el-icon-list', label: '鍙戝崱璁㈠崟', badge: null },
-    { path: '/entitlements', icon: 'el-icon-user', label: '鐢ㄦ埛鏉冪泭', badge: null },
-    { path: '/logs', icon: 'el-icon-document-copy', label: '璋冪敤鏃ュ織', badge: null },
-    { path: '/settings', icon: 'el-icon-setting', label: '椤圭洰璁剧疆', badge: null }
+    { path: '/dashboard', icon: 'el-icon-data-line', label: '数据看板', badge: null },
+    { path: '/cards', icon: 'el-icon-tickets', label: '卡密管理', badge: null },
+    { path: '/packages', icon: 'el-icon-box', label: '套餐模板', badge: null },
+    { path: '/api-keys', icon: 'el-icon-key', label: 'API密钥', badge: null },
+    { path: '/api-docs', icon: 'el-icon-document', label: 'API文档', badge: null },
+    { path: '/orders', icon: 'el-icon-list', label: '发卡订单', badge: null },
+    { path: '/entitlements', icon: 'el-icon-user', label: '用户权益', badge: null },
+    { path: '/logs', icon: 'el-icon-document-copy', label: '调用日志', badge: null },
+    { path: '/settings', icon: 'el-icon-setting', label: '项目设置', badge: null }
   ]
 })
-
-// 鏂规硶
 function toggleSidebar() {
   sidebarCollapsed.value = !sidebarCollapsed.value
 }
@@ -233,7 +213,7 @@ async function createProject() {
   try {
     const result = await projectStore.createProject(newProject.value)
     if (result.success) {
-      ElMessage.success('椤圭洰鍒涘缓鎴愬姛')
+      ElMessage.success('项目创建成功')
       showCreateProjectDialog.value = false
       newProject.value = {
         projectName: '',
@@ -250,15 +230,13 @@ async function createProject() {
 function logout() {
   router.push('/login')
 }
-
-// 鐢熷懡鍛ㄦ湡
 onMounted(() => {
   projectStore.loadProjects()
 })
 </script>
 
 <style scoped lang="scss">
-/* 鐜荤拑鎷熸€佹牱寮?*/
+
 .app-layout {
   display: flex;
   height: 100vh;
@@ -274,7 +252,7 @@ onMounted(() => {
   100% { background-position: 0% 50%; }
 }
 
-/* 鐜荤拑鏁堟灉鍩虹绫?*/
+
 .glass-panel {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(20px);
@@ -315,7 +293,7 @@ onMounted(() => {
   }
 }
 
-/* 渚ц竟鏍?*/
+
 .sidebar {
   width: 280px;
   padding: 24px 16px;
@@ -348,7 +326,7 @@ onMounted(() => {
   }
 }
 
-/* 椤圭洰閫夋嫨鍣?*/
+
 .project-selector {
   margin-bottom: 24px;
 
@@ -473,7 +451,7 @@ onMounted(() => {
   }
 }
 
-/* 瀵艰埅鑿滃崟 */
+
 .nav-menu {
   flex: 1;
   overflow-y: auto;
@@ -509,7 +487,7 @@ onMounted(() => {
   }
 }
 
-/* 鐢ㄦ埛淇℃伅 */
+
 .user-section {
   display: flex;
   align-items: center;
@@ -540,7 +518,7 @@ onMounted(() => {
   }
 }
 
-/* 涓诲唴瀹瑰尯 */
+
 .main-content {
   flex: 1;
   display: flex;
@@ -595,7 +573,7 @@ onMounted(() => {
   }
 }
 
-/* 鍔ㄧ敾 */
+
 .slide-fade-enter-active {
   transition: all 0.3s ease;
 }
@@ -610,7 +588,7 @@ onMounted(() => {
   opacity: 0;
 }
 
-/* 婊氬姩鏉℃牱寮?*/
+
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -628,7 +606,61 @@ onMounted(() => {
     background: rgba(255, 255, 255, 0.3);
   }
 }
+
+
+.glass-panel,
+.glass-card,
+.glass-section {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1) !important;
+}
+
+.logo,
+.section-header,
+.project-name,
+.project-code,
+.project-token,
+.nav-item,
+.username,
+.user-role,
+.breadcrumb,
+.empty-state {
+  color: #111827 !important;
+}
+
+.project-token,
+.project-code,
+.user-role,
+.empty-state p {
+  color: #4b5563 !important;
+}
+
+.glass-btn {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+
+.glass-btn:hover {
+  background: #f3f4f6 !important;
+}
+
+.nav-item.active {
+  background: #2563eb !important;
+  color: #ffffff !important;
+}
+
+.nav-item.active i,
+.nav-item.active span {
+  color: #ffffff !important;
+}
+
+.badge {
+  color: #ffffff !important;
+}
+
+.empty-state i {
+  color: #2563eb !important;
+}
 </style>
-
-
-

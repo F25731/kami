@@ -3,11 +3,10 @@
 </template>
 
 <script setup>
-// App entry point
 </script>
 
 <style>
-/* 全局样式重置 */
+
 * {
   margin: 0;
   padding: 0;
@@ -27,7 +26,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Element Plus 全局样式覆盖 */
+
 .el-button {
   border-radius: 8px;
 }
@@ -44,13 +43,13 @@ body {
   border-radius: 16px;
 }
 
-/* 玻璃拟态对话框 */
+
 .glass-dialog .el-dialog {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
 }
 
-/* 滚动条样式 */
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -64,9 +63,90 @@ body {
 ::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 4px;
+}
 
-  &:hover {
-    background: rgba(0, 0, 0, 0.3);
-  }
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+
+.app-layout {
+  background: linear-gradient(135deg, #e0f2fe 0%, #eef2ff 50%, #f8fafc 100%) !important;
+}
+
+.glass-panel,
+.glass-card,
+.glass-section {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1) !important;
+}
+
+.page-header h1,
+.page-header h2,
+.page-header h3,
+.glass-panel h1,
+.glass-panel h2,
+.glass-panel h3,
+.glass-card h1,
+.glass-card h2,
+.glass-card h3,
+.glass-panel p,
+.glass-card p,
+.settings-page,
+.dashboard-page,
+.cards-page,
+.api-keys-page,
+.orders-page,
+.logs-page,
+.packages-page,
+.entitlements-page,
+.api-docs-page {
+  color: #111827 !important;
+}
+
+.page-header p,
+.form-tip,
+.project-token,
+.project-code,
+.stat-trend,
+.metric-label,
+.endpoint-desc,
+.empty-hint {
+  color: #4b5563 !important;
+}
+
+.glass-btn {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+
+.glass-btn:hover {
+  background: #f3f4f6 !important;
+}
+
+.nav-item.active,
+.nav-item.router-link-active {
+  background: #2563eb !important;
+  color: #ffffff !important;
+}
+
+.nav-item.active *,
+.nav-item.router-link-active * {
+  color: #ffffff !important;
+}
+
+.el-table,
+.el-table th,
+.el-table tr,
+.el-table td {
+  color: #111827 !important;
+}
+
+code,
+pre {
+  color: #111827 !important;
+  background: #f3f4f6 !important;
 }
 </style>
