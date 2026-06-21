@@ -20,6 +20,7 @@ public class LicenseCenterSchemaMigrator {
         ensureApiKeyColumns();
         ensureOrderColumns();
         createOperationalTables();
+        ensureOperationalColumns();
         migrateOldRowsToDefaultProject();
         ensureIndexes();
         removePublicCommerceDefaults();
@@ -161,6 +162,43 @@ public class LicenseCenterSchemaMigrator {
                 KEY idx_nonce_created (created_at)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
             """);
+    }
+
+    private void ensureOperationalColumns() {
+        jdbcTemplate.execute("""
+            CREATE TABLE IF NOT EXISTS card_packages (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                project_id BIGINT NOT NULL,
+                package_name VARCHAR(100) NOT NULL,
+                package_code VARCHAR(80) NOT NULL,
+                card_type VARCHAR(20) NOT NULL DEFAULT 'count',
+                count_value INT NOT NULL DEFAULT 0,
+                duration_days INT NOT NULL DEFAULT 0,
+                is_permanent TINYINT(1) NOT NULL DEFAULT 0,
+                price DECIMAL(10,2) NULL,
+                status VARCHAR(20) NOT NULL DEFAULT 'enabled',
+                sort INT NOT NULL DEFAULT 0,
+                remark VARCHAR(500) NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                KEY idx_card_packages_project (project_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """);
+
+        addColumn("api_call_logs", "api_key", "VARCHAR(255) NULL");
+        addColumn("api_call_logs", "response_body", "TEXT NULL");
+        addColumn("api_call_logs", "client_ip", "VARCHAR(64) NULL");
+        addColumn("api_call_logs", "duration_ms", "BIGINT NULL");
+        addColumn("api_call_logs", "status", "VARCHAR(20) NOT NULL DEFAULT 'success'");
+        addColumn("api_call_logs", "error_message", "VARCHAR(1000) NULL");
+        addColumn("api_call_logs", "request_ip", "VARCHAR(64) NULL");
+        addColumn("api_call_logs", "success", "TINYINT(1) NOT NULL DEFAULT 0");
+        addColumn("api_call_logs", "cost_ms", "BIGINT NOT NULL DEFAULT 0");
+
+        addColumn("user_entitlements", "start_time", "DATETIME NULL");
+        addColumn("user_entitlements", "is_permanent", "TINYINT(1) NOT NULL DEFAULT 0");
+        addColumn("user_entitlements", "source_order_no", "VARCHAR(100) NULL");
+        addColumn("user_entitlements", "status", "VARCHAR(20) NOT NULL DEFAULT 'active'");
     }
 
     private void migrateOldRowsToDefaultProject() {

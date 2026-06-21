@@ -44,6 +44,13 @@
                 <div class="project-code">{{ project.projectCode }}</div>
               </div>
               <i v-if="currentProject?.id === project.id" class="el-icon-check"></i>
+              <el-button
+                v-if="project.projectCode !== 'default'"
+                class="project-delete-btn"
+                text
+                type="danger"
+                @click.stop="deleteProject(project)"
+              >??</el-button>
             </div>
 
             <el-button class="create-project-btn glass-btn" @click="showCreateProjectDialog = true">
@@ -143,7 +150,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProjectStore } from '@/stores/project'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 const projectStore = useProjectStore()
@@ -189,6 +196,22 @@ function toggleProjectList() {
 function selectProject(project) {
   projectStore.switchProject(project)
   ElMessage.success('已切换到项目：' + project.projectName)
+}
+
+async function deleteProject(project) {
+  try {
+    await ElMessageBox.confirm('??????????????????????' + project.projectName + '??', '??????', { type: 'warning' })
+    const result = await projectStore.deleteProject(project.id)
+    if (result.success) {
+      ElMessage.success('?????')
+    } else {
+      ElMessage.error(result.message || '????')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.response?.data?.message || error.message || '????')
+    }
+  }
 }
 
 async function createProject() {
@@ -357,6 +380,15 @@ onMounted(() => {
 
 .project-item.active *,
 .nav-item.active * {
+  color: #ffffff !important;
+}
+
+.project-delete-btn {
+  margin-left: auto;
+  padding: 4px 6px;
+}
+
+.project-item.active .project-delete-btn {
   color: #ffffff !important;
 }
 

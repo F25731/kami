@@ -27,6 +27,7 @@ public class ProjectMapper {
                    (SELECT COUNT(*) FROM api_keys ak WHERE ak.project_id = p.id) AS api_key_count,
                    (SELECT COUNT(*) FROM api_call_logs l WHERE l.project_id = p.id AND DATE(l.created_at) = CURDATE()) AS today_call_count
             FROM projects p
+            WHERE p.status <> 'deleted'
             ORDER BY p.created_at DESC
             """;
         return jdbcTemplate.query(sql, rowMapper);

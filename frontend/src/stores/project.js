@@ -79,6 +79,23 @@ export const useProjectStore = defineStore('project', () => {
     }
   }
 
+  async function deleteProject(projectId) {
+    try {
+      const { data } = await axios.delete(`/admin/projects/${projectId}`)
+      if (data.success) {
+        if (currentProject.value?.id === projectId) {
+          currentProject.value = null
+          localStorage.removeItem('currentProjectId')
+        }
+        await loadProjects()
+      }
+      return data
+    } catch (error) {
+      console.error('Failed to delete project:', error)
+      throw error
+    }
+  }
+
   return {
     projects,
     currentProject,
@@ -88,6 +105,7 @@ export const useProjectStore = defineStore('project', () => {
     loadProjects,
     switchProject,
     createProject,
+    deleteProject,
     normalizeProject,
     toApiProject
   }
